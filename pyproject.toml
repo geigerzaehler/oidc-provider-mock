@@ -69,6 +69,7 @@ dev = [
   "watchfiles>=1.0.3",
   "freezegun>=1.5.1",
   "ipython>=8.31.0",
+  "toml>=0.10.2",
 ]
 
 
