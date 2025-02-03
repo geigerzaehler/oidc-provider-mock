@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/main.yaml
+    with:
+      build_to_publish: true
 
   pypi-publish:
     needs:

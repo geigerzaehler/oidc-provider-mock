@@ -9,6 +9,15 @@ on:
     branches:
       - main
   workflow_call:
+    inputs:
+      build_to_publish:
+        description: "Set to true to upload the built package"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FORCE_COLOR: 1
 
 jobs:
   build:
