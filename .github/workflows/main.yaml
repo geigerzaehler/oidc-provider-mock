@@ -47,6 +47,8 @@ jobs:
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
       - run: uv build
+      - run: echo "${GITHUB_EVENT_NAME}"
+      - run: cat "${GITHUB_EVENT_PATH}"
       - if: matrix.python == '3.13' && github.event_name == 'workflow_call'
         run: uv run ./dev/check_release_version.py
       - if: matrix.python == '3.13' && github.event_name == 'workflow_call'
