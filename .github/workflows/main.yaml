@@ -19,6 +19,10 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+        resolution: [highest]
+        include:
+          - python: "3.10"
+            resolution: lowest
 
       fail-fast: true
 
@@ -31,17 +35,21 @@ jobs:
         id: setup-python
         with:
           python-version: ${{ matrix.python }}
+      - run: echo "UV_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> "$GITHUB_ENV"
+      - if: matrix.resolution == 'lowest'
+        run: |
+          echo "UV_RESOLUTION=lowest-direct" >> "$GITHUB_ENV"
+          uv lock --resolution lowest-direct --upgrade
+          git diff uv.lock
+      - run: uv sync --all-extras --locked
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run pyright --warnings
       - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('uv.lock') }}
-
-      - run: echo "UV_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> "$GITHUB_ENV"
-      - run: uv sync --all-extras --locked
-      - run: uv run ruff format --check
-      - run: uv run ruff check
-      - run: uv run pyright --warnings
       - run: uv run playwright install chromium
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
