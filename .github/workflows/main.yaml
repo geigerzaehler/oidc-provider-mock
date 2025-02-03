@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_call:
 
 jobs:
   build:
@@ -45,3 +46,9 @@ jobs:
       - run: uv run playwright install chromium
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
+      - run: uv build
+      - if: matrix.python == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
