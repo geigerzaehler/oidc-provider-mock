@@ -2,6 +2,8 @@ name: publish package
 
 on:
   push:
+    tags:
+      - "v*"
 
 jobs:
   build:
