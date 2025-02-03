@@ -8,6 +8,18 @@ on:
   pull_request:
     branches:
       - main
+  workflow_call:
+    inputs:
+      build_to_publish:
+        description: >-
+          Set to true to check that the package can be published upload the
+          distribution as artifacts.
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FORCE_COLOR: 1
 
 jobs:
   build:
@@ -36,12 +48,14 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: echo "UV_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> "$GITHUB_ENV"
-      - if: matrix.resolution == 'lowest'
+      - name: resolve dependencies to lowest possible version
+        if: matrix.resolution == 'lowest'
         run: |
           echo "UV_RESOLUTION=lowest-direct" >> "$GITHUB_ENV"
           uv lock --resolution lowest-direct --upgrade
-          git diff uv.lock
       - run: uv sync --all-extras --locked
+      - if: inputs.build_to_publish
+        run: uv run ./dev/check_release_version.py
       - run: uv run ruff format --check
       - run: uv run ruff check
       - run: uv run pyright --warnings
@@ -53,3 +67,9 @@ jobs:
       - run: uv run playwright install chromium
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
+      - run: uv build
+      - if: matrix.python == '3.13' && inputs.build_to_publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/

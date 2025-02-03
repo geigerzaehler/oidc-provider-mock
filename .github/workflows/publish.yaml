@@ -1,0 +1,30 @@
+name: publish package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/main.yaml
+    with:
+      build_to_publish: true
+
+  pypi-publish:
+    needs:
+      - build
+    environment:
+      name: pypi-test
+      url: https://test.pypi.org/p/oidc-provider-mock
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
