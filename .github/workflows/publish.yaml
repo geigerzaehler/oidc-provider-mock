@@ -8,13 +8,12 @@ jobs:
     uses: ./.github/workflows/main.yaml
 
   pypi-publish:
-    name: Upload release to PyPI
     needs:
       - build
-    runs-on: ubuntu-latest
     environment:
       name: pypi-test
       url: https://test.pypi.org/p/oidc-provider-mock
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
