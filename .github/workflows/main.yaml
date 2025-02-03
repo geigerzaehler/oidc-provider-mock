@@ -58,9 +58,9 @@ jobs:
       - run: uv build
       - run: echo "${GITHUB_EVENT_NAME}"
       - run: cat "${GITHUB_EVENT_PATH}"
-      - if: matrix.python == '3.13' && github.event_name == 'workflow_call'
+      - if: matrix.python == '3.13' && inputs.build_to_publish
         run: uv run ./dev/check_release_version.py
-      - if: matrix.python == '3.13' && github.event_name == 'workflow_call'
+      - if: matrix.python == '3.13' && inputs.build_to_publish
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
