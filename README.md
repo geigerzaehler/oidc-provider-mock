@@ -27,7 +27,7 @@ and client secret with the provider.
 Finally, you can authenticate against the app (the Relying Party) through the
 mock provider’s login form:
 
-![Authorization form](https://raw.githubusercontent.com/geigerzaehler/oidc-provider-mock/main/docs/_static/auth-form.png)
+![Authorization form](https://oidc-provider-mock.readthedocs.io/latest/_static/auth-form.webp)
 
 Take a look at the following example for using the server in a test.
 
