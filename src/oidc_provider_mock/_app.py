@@ -432,7 +432,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
 
         user = storage.get_user(sub)
         if not user:
-            user = User(sub=sub)
+            user = User(sub=sub, claims={"email": sub})
             storage.store_user(user)
 
         try:

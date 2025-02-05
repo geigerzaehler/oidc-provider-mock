@@ -38,6 +38,7 @@ def test_auth_success(oidc_server: str):
     token_data = client.fetch_token(location, state=state)
 
     assert token_data.claims["sub"] == subject
+    assert token_data.claims["email"] == subject
     assert token_data.claims["nonce"] == nonce
 
     userinfo = client.fetch_userinfo(token=token_data.access_token)
@@ -243,6 +244,20 @@ def test_no_openid_scope(oidc_server: str):
         AuthorizationServerError, match="missing id_token from token endpoint response"
     ):
         client.fetch_token(response.headers["location"], state)
+
+
+def test_no_email_scope(oidc_server: str):
+    state = faker.password()
+
+    client = OidcClient.register(oidc_server, scope="openid")
+
+    response = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": faker.email()},
+    )
+
+    token_data = client.fetch_token(response.headers["location"], state)
+    assert "email" not in token_data.claims
 
 
 @use_provider_config(access_token_max_age=timedelta(minutes=111))
