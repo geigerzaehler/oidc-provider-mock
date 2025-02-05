@@ -1,3 +1,5 @@
+@import url("https://cdn.jsdelivr.net/npm/css-device-frames@1/dist/device-frames.min.css");
+
 .sy-head-blur {
   backdrop-filter: none;
   background-color: var(--sand-1);

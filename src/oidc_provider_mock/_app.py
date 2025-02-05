@@ -305,6 +305,8 @@ def app(
         issue_refresh_token=issue_refresh_token,
         access_token_max_age=access_token_max_age,
     )
+    if isinstance(app.json, flask.json.provider.DefaultJSONProvider):
+        app.json.compact = False
     return app
 
 
@@ -384,7 +386,7 @@ class RegisterClientBody(pydantic.BaseModel):
     # TODO: support scopes
 
 
-@blueprint.post("/register-client")
+@blueprint.post("/oauth2/clients")
 def register_client():
     body = _validate_body(flask.request, RegisterClientBody)
 

@@ -35,8 +35,8 @@ default_role = "any"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.todo",
     "myst_parser",
 ]
 
@@ -47,6 +47,8 @@ intersphinx_mapping = {
 
 autodoc_typehints = "both"
 autodoc_typehints_description_target = "documented"
+
+myst_heading_anchors = 2
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

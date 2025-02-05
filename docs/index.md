@@ -3,6 +3,7 @@
 :hidden:
 
 Readme <readme.md>
+usage
 api.rst
 http.rst
 ```

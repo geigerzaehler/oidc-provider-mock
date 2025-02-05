@@ -13,18 +13,21 @@ You can find the full documentation [here][docs].
 
 ## Usage
 
-Run the OpenID Provider server
+The simplest method to run the server is [`pipx`][pipx]
 
 ```bash
 $ pipx run oidc-provider-mock
 Started OpenID provider http://localhost:9400
 ```
 
-Configure the OpenID Connect client library in your app to use
-`http://localhost:9400` as the issuer URL. You can use any client ID and client
-secret with the provider.
+Now, configure your OpenID Connect client library in your app to use
+`http://localhost:9400` as the issuer URL. By default, you can use any client ID
+and client secret with the provider.
 
-Now you can authenticate and authorize the app in the login form.
+Finally, you can authenticate against the app (the Relying Party) through the
+mock provider’s login form:
+
+![Authorization form](https://raw.githubusercontent.com/geigerzaehler/oidc-provider-mock/main/docs/_static/auth-form.png)
 
 Take a look at the following example for using the server in a test.
 
@@ -87,6 +90,8 @@ def test_auth_code_login_playwright(live_server, page, oidc_server):
 
 You can find a full example at
 [`examples/flask_oidc_example.py`](examples/flask_oidc_example.py), too.
+
+[pipx]: https://pipx.pypa.io/latest/installation/
 
 ## Alternatives
 

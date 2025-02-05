@@ -44,7 +44,7 @@ def test_invalid_client(client: flask.testing.FlaskClient, method: str):
 
     redirect_uris = [faker.uri(schemes=["https"])]
     response = client.post(
-        "/register-client",
+        "/oauth2/clients",
         json={
             "redirect_uris": redirect_uris,
         },
