@@ -35,7 +35,6 @@ default_role = "any"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
-    "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "myst_parser",
 ]
