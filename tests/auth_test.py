@@ -90,13 +90,13 @@ def test_include_all_claims(oidc_server: str):
 
     httpx.put(f"{oidc_server}/users/{subject}", json=claims).raise_for_status()
 
-    client = OidcClient(oidc_server)
+    client = OidcClient(
+        oidc_server,
+        scope="openid profile email address phone",
+    )
 
     response = httpx.post(
-        client.authorization_url(
-            state=state,
-            scope="openid profile email address phone",
-        ),
+        client.authorization_url(state=state),
         data={"sub": subject},
     )
 
@@ -232,10 +232,10 @@ def test_nonce_required_error(oidc_server: str):
 def test_no_openid_scope(oidc_server: str):
     state = faker.password()
 
-    client = OidcClient(oidc_server)
+    client = OidcClient(oidc_server, scope="foo bar")
 
     response = httpx.post(
-        client.authorization_url(state=state, scope="foo bar"),
+        client.authorization_url(state=state),
         data={"sub": faker.email()},
     )
 

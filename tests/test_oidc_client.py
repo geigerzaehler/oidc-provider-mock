@@ -30,6 +30,8 @@ class RefreshTokenData:
 
 
 class OidcClient:
+    DEFAULT_SCOPE = "openid email"
+
     _authlib_client: OAuth2Client
 
     def __init__(
@@ -39,6 +41,7 @@ class OidcClient:
         id: str | None = None,
         redirect_uri: str | None = None,
         auth_method: str = "client_secret_basic",
+        scope: str = DEFAULT_SCOPE,
         secret: str | None = None,
     ) -> None:
         if redirect_uri is None:
@@ -46,6 +49,7 @@ class OidcClient:
 
         self._id = id or str(faker.uuid4())
         self._secret = secret or faker.password()
+        self._scope = scope
 
         config = self.get_authorization_server_metadata(issuer)
 
@@ -85,9 +89,11 @@ class OidcClient:
         cls,
         provider_url: str,
         redirect_uri: str | None = None,
+        scope: str = DEFAULT_SCOPE,
         auth_method: str = "client_secret_basic",
     ):
         """Register a client with the OpenID provider and instantiate it."""
+
         config = cls.get_authorization_server_metadata(provider_url)
 
         if redirect_uri is None:
@@ -101,6 +107,7 @@ class OidcClient:
                     json={
                         "redirect_uris": [redirect_uri],
                         "token_endpoint_auth_method": auth_method,
+                        "scope": scope,
                     },
                 )
                 .raise_for_status()
@@ -117,6 +124,7 @@ class OidcClient:
             provider_url,
             id=content["client_id"],
             redirect_uri=redirect_uri,
+            scope=scope,
             secret=content["client_secret"],
         )
 
@@ -132,10 +140,12 @@ class OidcClient:
         self,
         *,
         state: str,
-        scope: str = "openid",
+        scope: str | None = None,
         response_type: str = "code",
         nonce: str | None = None,
     ) -> str:
+        if scope is None:
+            scope = self._scope
         extra = {
             "scope": scope,
             "response_type": response_type,
