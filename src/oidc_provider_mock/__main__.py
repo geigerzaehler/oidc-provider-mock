@@ -68,6 +68,8 @@ def run(
     token_max_age: int,
 ):
     """Start an OpenID Connect Provider for testing"""
+    import os
+    print(os.getenv("OAUTHLIB_INSECURE_TRANSPORT"))
 
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(

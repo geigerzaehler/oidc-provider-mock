@@ -139,6 +139,7 @@ def _user_claims_for_scope(user: User, scope: str) -> dict[str, object]:
             if name not in _STANDARD_CLAIMS or name in allowed_standard_claims_for_scope
         },
         "sub": user.sub,
+        **user.additional_attributes,
     }
 
 
@@ -569,7 +570,8 @@ SetUserBody = pydantic.RootModel[dict[str, object]]
 @blueprint.put("/users/<sub>")
 def set_user(sub: str):
     body = _validate_body(flask.request, SetUserBody)
-    storage.store_user(User(sub=sub, claims=body.root))
+    additional_attributes = body.root.pop("additional_attributes", {})
+    storage.store_user(User(sub=sub, claims=body.root, additional_attributes=additional_attributes))
     return "", HTTPStatus.NO_CONTENT
 
 
