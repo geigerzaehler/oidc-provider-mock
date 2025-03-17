@@ -792,7 +792,7 @@ wheels = [
 
 [[package]]
 name = "oidc-provider-mock"
-version = "0.0.3rc2"
+version = "0.0.3rc3"
 source = { editable = "." }
 dependencies = [
     { name = "authlib" },
