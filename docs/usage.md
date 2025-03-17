@@ -34,7 +34,7 @@ the user the authorization form.
 
 The “sub” input is the user identifier (“subject”) that is included in the ID
 token claims and user info response. By default, the value is also used for the
-`email` claim. (See also <project:#user-claims>)
+`email` claim. (See also <project:#setting-claims>)
 
 When the user clicks “Authorize” they are redirected to the client application
 and the app can obtain the OpenID token with information about the user.
@@ -68,23 +68,42 @@ The client ID and secret are contained in the response
 }
 ```
 
-## User claims
+## Setting claims
 
 By default, only the [OpenID Connect core claims][core claims] and the `email`
-claim are returned to the client in the ID token and user info response. The
-value entered into the authentication form is used for the `sub` and `email`
-claims.
+[standard claim][standard claims] are returned to the client in the ID token and
+user info response. The value entered into the authentication form is used for
+the `sub` and `email` claims.
 
 Additional claims can be added to a user identified by their `sub` value through
 the <project:#http_put_users> endpoint:
 
 ```bash
 curl -XPUT localhost:9400/users/alice1 \
-   --json '{"email": ["alice@example.com"], "nickname": "Alice"}'
+   --json '{"email": "alice@example.com", "custom": {"foo": 1}}'
 ```
 
 If you authenticate as `alice1` the ID token and the user info response will
-include the `email` and `name` fields above. Make sure that the client includes
-the necessary scopes in the authorization request.
+include the `email` and `custom` fields above.
+
+### Scopes and claims
+
+OpenID Connect [standard claims][] are only included in the ID token if the
+client and authorization request have the appropriate scope.
+
+Consider the following claims:
+
+```bash
+curl -XPUT localhost:9400/users/alice1 \
+   --json '{"email": "alice@example.com", "name": "Alice"}'
+```
+
+The ID token contains the `email` and `name` claims only if `email` and
+`profile` are included in the authorization scope.
+
+The mapping from claims to scopes is documented in [“Requesting Claims using
+Scope Values”][scope claims].
 
 [core claims]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+[standard claims]: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+[scope claims]: https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
