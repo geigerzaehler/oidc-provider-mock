@@ -15,7 +15,7 @@ jobs:
     needs:
       - build
     environment:
-      name: pypi-test
+      name: pypi
       url: https://test.pypi.org/p/oidc-provider-mock
     runs-on: ubuntu-latest
     permissions:
@@ -27,4 +27,4 @@ jobs:
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy/
+          repository-url: https://upload.pypi.org/legacy/

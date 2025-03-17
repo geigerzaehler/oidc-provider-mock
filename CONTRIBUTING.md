@@ -32,3 +32,15 @@ To preview and watch the documentation run
 ```bash
 uvr sphinx-autobuild docs docs/dist -a --watch src --watch docs
 ```
+
+## Releases
+
+To prepare a release:
+
+1. Update the version in `./pyproject.toml`
+1. Run `uv lock`
+1. Commit the changes with the message `release: vX.Y.Z`
+1. Tag the commit with `vX.Y.Z` and push the tag: `git tag vX.Y.Z && git push
+origin tag vX.Y.Z`
+
+The publish workflow will build and publish the release to PyPI.
