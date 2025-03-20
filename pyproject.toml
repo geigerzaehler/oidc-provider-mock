@@ -1,6 +1,6 @@
 [project]
 name = "oidc-provider-mock"
-version = "0.2.0"
+version = "0.2.1.dev1"
 description = "OpenID Connect provider server for testing authentication"
 authors = [{ name = "Thomas Scholtes", email = "geigerzaehler@axiom.fm" }]
 readme = "README.md"
@@ -33,6 +33,7 @@ classifiers = [
 dependencies = [
   "authlib>=1.4",
   "flask>=3.1",
+  "httpx>=0.26",
   "htpy>=25.2.0",
   "joserfc>=1.0.3",
   "pydantic>=2.0",
