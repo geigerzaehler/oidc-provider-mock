@@ -350,6 +350,65 @@ def test_refresh_token(oidc_server: str):
     client.fetch_userinfo(token=refresh_token_data.access_token)
 
 
+def test_user_groups(oidc_server: str):
+    """Authenticate with groups in ID token and user info"""
+
+    subject = faker.email()
+    state = faker.password()
+    groups = ["some-group", "another-group"]
+
+    httpx.put(
+        f"{oidc_server}/users/{subject}",
+        json={"additional_attributes": {"groups":  groups} },
+    ).raise_for_status()
+
+    client = _fake_client(issuer=oidc_server)
+
+    token_data = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": subject},
+    )
+
+    token_data = client.fetch_token(token_data.headers["location"], state=state)
+    assert token_data.claims["sub"] == subject
+    assert token_data.claims["groups"] == groups
+
+    userinfo = client.fetch_userinfo(token=token_data.access_token)
+    print(userinfo)
+    assert userinfo["sub"] == subject
+    assert userinfo["groups"] == groups
+
+
+def test_user_additional_attributes(oidc_server: str):
+    """Authenticate with additional attributes in ID token and user info"""
+
+    subject = faker.email()
+    state = faker.password()
+    additional_attributes = {"custom_attr1": "value1", "custom_attr2": "value2"}
+
+    httpx.put(
+        f"{oidc_server}/users/{subject}",
+        json={"additional_attributes": additional_attributes},
+    ).raise_for_status()
+
+    client = _fake_client(issuer=oidc_server)
+
+    token_data = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": subject},
+    )
+
+    token_data = client.fetch_token(token_data.headers["location"], state=state)
+    assert token_data.claims["sub"] == subject
+    assert token_data.claims["custom_attr1"] == "value1"
+    assert token_data.claims["custom_attr2"] == "value2"
+
+    userinfo = client.fetch_userinfo(token=token_data.access_token)
+    assert userinfo["sub"] == subject
+    assert userinfo["custom_attr1"] == "value1"
+    assert userinfo["custom_attr2"] == "value2"
+
+
 def _fake_client(
     issuer: str,
     *,
