@@ -8,10 +8,10 @@ from http import HTTPStatus
 from typing import TypeVar, cast
 from uuid import uuid4
 
+import authlib.integrations.flask_oauth2 as flask_oauth2
 import authlib.oauth2.rfc6749
-import authlib.oauth2.rfc6749.grants
 import authlib.oauth2.rfc6750
-import authlib.oidc.core.grants
+import authlib.oidc.core
 import flask
 import flask.typing
 import pydantic
@@ -19,7 +19,6 @@ import werkzeug.debug
 import werkzeug.exceptions
 import werkzeug.local
 from authlib import jose
-from authlib.integrations import flask_oauth2
 from authlib.integrations.flask_oauth2.authorization_server import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
 from typing_extensions import override
@@ -44,7 +43,8 @@ _JWS_ALG = "RS256"
 
 
 class TokenValidator(authlib.oauth2.rfc6750.BearerTokenValidator):
-    def authenticate_token(self, token_string: str):
+    @override
+    def authenticate_token(self, token_string: str):  # pyright: ignore[reportIncompatibleMethodOverride]
         token = storage.get_access_token(token_string)
         if not token:
             raise authlib.oauth2.rfc6749.AccessDeniedError()
@@ -54,7 +54,7 @@ class TokenValidator(authlib.oauth2.rfc6750.BearerTokenValidator):
 
 class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
     @override
-    def query_authorization_code(
+    def query_authorization_code(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, code: str, client: Client
     ) -> AuthorizationCode | None:
         auth_code = storage.get_authorization_code(code)
@@ -74,7 +74,7 @@ class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
         assert isinstance(request, OAuth2Request)
         assert isinstance(request.user, User)
         client = cast("Client", request.client)
-        assert isinstance(request.redirect_uri, str)  # type: ignore
+        assert isinstance(request.redirect_uri, str)
         storage.store_authorization_code(
             AuthorizationCode(
                 code=code,
@@ -82,7 +82,7 @@ class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
                 client_id=client.get_client_id(),
                 redirect_uri=request.redirect_uri,
                 scope=request.scope,
-                nonce=request.data.get("nonce"),  # type: ignore
+                nonce=request.data.get("nonce"),
             )
         )
 
@@ -97,7 +97,7 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         return storage.exists_nonce(nonce)
 
     @override
-    def get_jwt_config(self, grant: AuthorizationCodeGrant):
+    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportIncompatibleMethodOverride]
         return {
             "key": storage.jwk,
             "alg": _JWS_ALG,
@@ -106,7 +106,7 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         }
 
     @override
-    def generate_user_info(self, user: User, scope: str):
+    def generate_user_info(self, user: User, scope: str):  # pyright: ignore[reportIncompatibleMethodOverride]
         return _user_claims_for_scope(user, scope)
 
 
@@ -122,7 +122,8 @@ class RefreshTokenGrant(authlib.oauth2.rfc6749.RefreshTokenGrant):
     def authenticate_user(self, refresh_token: RefreshToken):
         return storage.get_user(refresh_token.user_id)
 
-    def revoke_old_credential(self, refresh_token: RefreshToken):
+    def revoke_old_credential(self, refresh_token: authlib.oauth2.rfc6749.TokenMixin):
+        assert isinstance(refresh_token, RefreshToken)
         storage.remove_access_token(refresh_token.access_token)
 
 
@@ -228,14 +229,13 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
         assert isinstance(token["access_token"], str)
         assert isinstance(token["expires_in"], int)
         assert isinstance(request.user, User)
-        user = cast("User", request.user)
         scope = token.get("scope", "")
         assert isinstance(scope, str)
 
         storage.store_access_token(
             AccessToken(
                 token=token["access_token"],
-                user_id=user.sub,
+                user_id=request.user.sub,
                 # request.scope may actually be None
                 scope=scope,
                 expires_at=datetime.now(timezone.utc)
@@ -251,7 +251,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
                 RefreshToken(
                     access_token=token["access_token"],
                     token=token["refresh_token"],
-                    user_id=user.sub,
+                    user_id=request.user.sub,
                     scope=scope,
                     expires_at=datetime.now(timezone.utc)
                     + timedelta(seconds=token["expires_in"]),
@@ -265,7 +265,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
         save_token=save_token,
     )
 
-    authorization.register_grant(  # type: ignore
+    authorization.register_grant(
         AuthorizationCodeGrant,
         [
             OpenIDCode(
@@ -275,14 +275,12 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
         ],
     )
 
-    authorization.register_grant(  # type: ignore
-        RefreshTokenGrant
-    )
+    authorization.register_grant(RefreshTokenGrant)
 
 
 @blueprint.record_once
 def setup_once(setup_state: flask.blueprints.BlueprintSetupState):
-    require_oauth.register_token_validator(TokenValidator())
+    require_oauth.register_token_validator(TokenValidator())  # pyright: ignore[reportUnknownMemberType]
 
 
 def app(
@@ -425,7 +423,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
     request = FlaskOAuth2Request(flask.request)
     try:
         grant, redirect_uri = _validate_auth_request_client_params(flask.request)
-        assert isinstance(grant.client, Client)
+        assert isinstance(grant.client, Client)  # pyright: ignore[reportUnknownMemberType]
     except _AuthorizationValidationException:
         _logger.warning("invalid authorization request", exc_info=True)
         raise
@@ -439,7 +437,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
     else:
         if flask.request.form.get("action") == "deny":
             return authorization.handle_response(  # pyright: ignore[reportUnknownMemberType]
-                *authlib.oauth2.rfc6749.AccessDeniedError(
+                *authlib.oauth2.rfc6749.AccessDeniedError(  # pyright: ignore[reportUnknownArgumentType]
                     redirect_uri=flask.request.args["redirect_uri"]
                 )()
             )
@@ -485,7 +483,7 @@ def _validate_auth_request_client_params(
         grant = authorization.get_consent_grant()  # type: ignore
         assert isinstance(grant, AuthorizationCodeGrant)
         assert isinstance(grant, authlib.oauth2.rfc6749.AuthorizationEndpointMixin)
-        redirect_uri = grant.validate_authorization_request()  # pyright: ignore
+        redirect_uri = grant.validate_authorization_request()
         assert isinstance(redirect_uri, str)
     except authlib.oauth2.rfc6749.InvalidClientError as e:
         raise _AuthorizationValidationException(
@@ -498,7 +496,7 @@ def _validate_auth_request_client_params(
             f"OAuth response_type {e.response_type} is not supported",
         ) from e
     except authlib.oauth2.rfc6749.InvalidRequestError as e:
-        description = e.description  # type: ignore
+        description = e.description
         # FIXME: this is a brittle way of determining what the error is but
         # authlib does not raise a dedicated error in this case.
         if description == "Redirect URI foo is not supported by client.":
@@ -509,13 +507,13 @@ def _validate_auth_request_client_params(
         else:
             raise werkzeug.exceptions.HTTPException(
                 response=flask.make_response(
-                    authorization.handle_error_response(request, e)  # type: ignore
+                    authorization.handle_error_response(request, e)
                 )
             ) from e
     except authlib.oauth2.OAuth2Error as e:
         raise werkzeug.exceptions.HTTPException(
             response=flask.make_response(
-                authorization.handle_error_response(request, e)  # type: ignore
+                authorization.handle_error_response(request, e)
             )
         ) from e
 
@@ -536,7 +534,7 @@ class _AuthorizationValidationException(werkzeug.exceptions.HTTPException):
 def issue_token() -> flask.typing.ResponseReturnValue:
     request = FlaskOAuth2Request(flask.request)
     try:
-        grant = authorization.get_token_grant(request)  # type: ignore
+        grant = authorization.get_token_grant(request)
     except authlib.oauth2.rfc6749.UnsupportedGrantTypeError as error:
         _logger.warning("unsupported grant type when issuing token", exc_info=error)
         return authorization.handle_error_response(request, error)  # type: ignore
@@ -545,7 +543,7 @@ def issue_token() -> flask.typing.ResponseReturnValue:
 
     try:
         grant.validate_token_request()
-        args = grant.create_token_response()  # type: ignore
+        args = grant.create_token_response()
         return authorization.handle_response(*args)  # type: ignore
     except OAuth2Error as error:
         _logger.warning("did not issue token", exc_info=error)

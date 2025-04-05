@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import ClassVar, Literal, TypeAlias, cast
@@ -55,8 +55,12 @@ class Client(authlib.oauth2.rfc6749.ClientMixin):
         return self.redirect_uris[0]
 
     @override
-    def get_allowed_scope(self, scope: str) -> str:
-        return " ".join(s for s in scope.split() if s in self.allowed_scopes)
+    def get_allowed_scope(self, scope: Collection[str] | str) -> str:
+        if isinstance(scope, str):
+            scopes = scope.split()
+        else:
+            scopes = scope
+        return " ".join(s for s in scopes if s in self.allowed_scopes)
 
     @override
     def check_redirect_uri(self, redirect_uri: str) -> bool:
@@ -176,7 +180,7 @@ class Storage:
     _nonces: set[str]
 
     def __init__(self) -> None:
-        self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
+        self.jwk = jose.RSAKey.generate_key(is_private=True)
         self._clients = {}
         self._users = {}
         self._authorization_codes = {}

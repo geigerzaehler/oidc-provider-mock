@@ -178,6 +178,7 @@ class OidcClient:
             code_verifier=None,
             **extra,
         )
+        assert isinstance(url, str)
         return url
 
     def fetch_token(
