@@ -59,10 +59,10 @@ def oidc_server():
 
 
 def test_auth_code_login(client: flask.testing.FlaskClient, oidc_server: str):
-    # Let the OIDC provider know about the user’s email and name
+    # Add OIDC claims for the user we want to authenticate
     response = httpx.put(
         f"{oidc_server}/users/{quote('alice@example.com')}",
-        json={"email": "alice@example.com", "name": "Alice"},
+        json={"email": "alice@example.com", "name": "Alice", "custom": ["foo", "bar"]},
     )
     assert response.status_code == 204
 

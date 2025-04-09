@@ -30,21 +30,22 @@ mock provider’s login form:
 
 ![Authorization form](https://oidc-provider-mock.readthedocs.io/latest/_static/auth-form.webp)
 
-Take a look at the following example for using the server in a test.
+Take a look at the following example that uses the server in a test for a
+[Flask-OIDC](https://flask-oidc.readthedocs.io/en/latest/) app.
 
 ```python
 @pytest.fixture
-def oidc_server():
-    logging.getLogger("oidc_provider_mock.server").setLevel(logging.DEBUG)
+def oidc_server(app):
     with oidc_provider_mock.run_server_in_thread() as server:
+        # Use this to configure Flask-OIDC
         yield f"http://localhost:{server.server_port}"
 
 
 def test_login(client, oidc_server):
-    # Let the OIDC provider know about the user’s email and name
+    # Add OIDC claims for the user we want to authenticate
     httpx.put(
         f"{oidc_server}/users/{quote('alice@example.com')}",
-        json={"email": "alice@example.com", "name": "Alice"},
+        json={"email": "alice@example.com", "name": "Alice", "custom": ["foo", "bar"]},
     )
 
     # Start login on the client and get the authorization URL
@@ -72,10 +73,10 @@ login test looks like this:
 
 ```python
 def test_auth_code_login_playwright(live_server, page, oidc_server):
-    # Let the OIDC provider know about the user’s email and name
+    # Add OIDC claims for the user we want to authenticate
     httpx.put(
         f"{oidc_server}/users/{quote('alice@example.com')}",
-        json={"email": "alice@example.com", "name": "Alice"},
+        json={"email": "alice@example.com", "name": "Alice", "custom": ["foo", "bar"]},
     )
 
     # Start login and be redirected to the provider
