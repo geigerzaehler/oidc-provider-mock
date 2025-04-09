@@ -59,6 +59,7 @@ jobs:
       - run: uv run ruff format --check
       - run: uv run ruff check
       - run: uv run pyright --warnings
+      - run: uv run ./dev/build_readme.py && git diff --exit-code -- README.md
       - uses: actions/cache@v4
         with:
           path: |

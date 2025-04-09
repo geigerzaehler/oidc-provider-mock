@@ -51,9 +51,11 @@ def app(oidc_server: str):
     return app
 
 
+# SNIPPET flask_test_login
+
+
 @pytest.fixture
 def oidc_server():
-    logging.getLogger("oidc_provider_mock").setLevel(logging.DEBUG)
     with oidc_provider_mock.run_server_in_thread() as server:
         yield f"http://localhost:{server.server_port}"
 
@@ -81,6 +83,11 @@ def test_auth_code_login(client: flask.testing.FlaskClient, oidc_server: str):
     assert response.text == "Welcome Alice (alice@example.com)"
 
 
+# SNIPPET END
+
+# SNIPPET flask_test_login_playwright
+
+
 def test_auth_code_login_playwright(
     live_server: LiveServer, oidc_server: str, page: Page
 ):
@@ -100,6 +107,9 @@ def test_auth_code_login_playwright(
 
     # Verify that we’re logged in
     expect(page.locator("body")).to_contain_text("Welcome Alice (alice@example.com)")
+
+
+# SNIPPET END
 
 
 def test_auth_denied_playwright(live_server: LiveServer, oidc_server: str, page: Page):

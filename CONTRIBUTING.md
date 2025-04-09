@@ -30,7 +30,14 @@ uv run sphinx-build --fail-on-warning docs docs/dist
 To preview and watch the documentation run
 
 ```bash
-uvr sphinx-autobuild docs docs/dist -a --watch src --watch docs
+uv run sphinx-autobuild docs docs/dist -a --watch src --watch docs
+```
+
+The readme is built from `README.md.tpl` using code snippets from project files
+with
+
+```bash
+uv run dev/build_readme.py
 ```
 
 ## Releases
