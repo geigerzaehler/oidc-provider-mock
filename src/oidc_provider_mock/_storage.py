@@ -95,7 +95,7 @@ class Client(authlib.oauth2.rfc6749.ClientMixin):
 @dataclass(kw_only=True, frozen=True)
 class User:
     sub: str
-    claims: dict[str, object] = field(default_factory=dict)
+    claims: dict[str, object] = field(default_factory=dict[str, object])
 
 
 @dataclass(kw_only=True, frozen=True)
