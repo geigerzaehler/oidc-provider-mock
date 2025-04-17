@@ -61,3 +61,8 @@ claims that will be included in the ID token and user info response, for example
     }
 
 A request overrides any previously set claims for the subject.
+
+``POST /users/{sub}/revoke-tokens``
+-----------------------------------
+
+Revoke all access and refresh tokens for this user.

@@ -1,4 +1,4 @@
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import ClassVar, Literal, TypeAlias, cast
@@ -188,11 +188,15 @@ class Storage:
         self._refresh_tokens = {}
         self._nonces = set()
 
+    # User
+
     def get_user(self, sub: str) -> User | None:
         return self._users.get(sub)
 
     def store_user(self, user: User):
         self._users[user.sub] = user
+
+    # AuthorizationCodes
 
     def get_authorization_code(self, code: str) -> AuthorizationCode | None:
         return self._authorization_codes.get(code)
@@ -203,14 +207,21 @@ class Storage:
     def remove_authorization_code(self, code: str) -> AuthorizationCode | None:
         return self._authorization_codes.pop(code, None)
 
+    # AccessTokens
+
     def get_access_token(self, token: str) -> AccessToken | None:
         return self._access_tokens.get(token)
 
     def store_access_token(self, access_token: AccessToken):
         self._access_tokens[access_token.token] = access_token
 
-    def remove_access_token(self, access_token: str):
-        del self._access_tokens[access_token]
+    def remove_access_token(self, access_token: str) -> AccessToken | None:
+        return self._access_tokens.pop(access_token, None)
+
+    def access_tokens(self) -> Iterable[AccessToken]:
+        return list(self._access_tokens.values())
+
+    # RefreshTokens
 
     def get_refresh_token(self, token: str) -> RefreshToken | None:
         return self._refresh_tokens.get(token)
@@ -218,11 +229,21 @@ class Storage:
     def store_refresh_token(self, refresh_token: RefreshToken):
         self._refresh_tokens[refresh_token.token] = refresh_token
 
+    def remove_refresh_token(self, token: str) -> RefreshToken | None:
+        return self._refresh_tokens.pop(token, None)
+
+    def refresh_tokens(self) -> Iterable[RefreshToken]:
+        return list(self._refresh_tokens.values())
+
+    # Client
+
     def get_client(self, id: str) -> Client | None:
         return self._clients.get(id)
 
     def store_client(self, client: Client):
         self._clients[client.id] = client
+
+    # Nonce
 
     def add_nonce(self, nonce: str):
         self._nonces.add(nonce)

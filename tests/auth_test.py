@@ -315,7 +315,7 @@ def test_token_expiry(oidc_server: str):
 def test_no_refresh_token(oidc_server: str):
     state = faker.password()
 
-    client = OidcClient.register(oidc_server, redirect_uri=faker.uri(schemes=["https"]))
+    client = _fake_client(oidc_server)
 
     response = httpx.post(
         client.authorization_url(state=state),
@@ -330,7 +330,7 @@ def test_no_refresh_token(oidc_server: str):
 def test_refresh_token(oidc_server: str):
     state = faker.password()
 
-    client = OidcClient.register(oidc_server, redirect_uri=faker.uri(schemes=["https"]))
+    client = _fake_client(oidc_server)
 
     response = httpx.post(
         client.authorization_url(state=state),
@@ -348,6 +348,28 @@ def test_refresh_token(oidc_server: str):
     assert e.value.response.json()["error"] == "access_denied"
 
     client.fetch_userinfo(token=refresh_token_data.access_token)
+
+
+def test_revoke_tokens(oidc_server: str):
+    state = faker.password()
+    sub = faker.email()
+    client = _fake_client(oidc_server)
+
+    auth_response = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": sub},
+    )
+    token_data = client.fetch_token(auth_response.headers["location"], state=state)
+
+    httpx.post(f"{oidc_server}users/{sub}/revoke-tokens").raise_for_status()
+
+    with pytest.raises(httpx.HTTPStatusError) as e:
+        client.fetch_userinfo(token=token_data.access_token)
+    assert e.value.response.json()["error"] == "access_denied"
+
+    assert token_data.refresh_token
+    with pytest.raises(OAuthError, match="access_denied") as e:
+        client.refresh_token(token_data.refresh_token)
 
 
 def _fake_client(

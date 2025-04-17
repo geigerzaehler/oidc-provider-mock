@@ -569,6 +569,17 @@ def set_user(sub: str):
     return "", HTTPStatus.NO_CONTENT
 
 
+@blueprint.post("/users/<sub>/revoke-tokens")
+def revoke_user_tokens(sub: str):
+    for access_token in storage.access_tokens():
+        if access_token.user_id == sub:
+            storage.remove_access_token(access_token.token)
+    for refresh_token in storage.refresh_tokens():
+        if refresh_token.user_id == sub:
+            storage.remove_refresh_token(refresh_token.token)
+    return "", HTTPStatus.NO_CONTENT
+
+
 _Model = TypeVar("_Model", bound=pydantic.BaseModel)
 
 

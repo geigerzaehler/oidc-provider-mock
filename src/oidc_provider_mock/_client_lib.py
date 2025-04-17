@@ -23,6 +23,7 @@ class TokenData:
     scope: str | None
 
 
+# TODO: Use TokenData instead
 @dataclass(kw_only=True, frozen=True)
 class RefreshTokenData:
     access_token: str
@@ -247,6 +248,8 @@ class OidcClient:
         )
 
     def refresh_token(self, refresh_token: str) -> RefreshTokenData:
+        """Fetch a fresh access token using the refresh token as a grant."""
+
         authlib_token = self._authlib_client.fetch_token(  # pyright: ignore[reportUnknownVariableType,reportUnknownMemberType]
             self._token_endpoint_url,
             refresh_token=refresh_token,

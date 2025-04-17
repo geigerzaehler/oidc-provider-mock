@@ -1,6 +1,6 @@
 [project]
 name = "oidc-provider-mock"
-version = "0.2.2"
+version = "0.2.3.alpha1"
 description = "OpenID Connect provider server for testing authentication"
 authors = [{ name = "Thomas Scholtes", email = "geigerzaehler@axiom.fm" }]
 readme = "README.md"
