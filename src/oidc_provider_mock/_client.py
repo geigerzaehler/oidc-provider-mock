@@ -91,4 +91,4 @@ def _get_client() -> OidcClient:
 
 
 def _render_page(*content: h.Node) -> str:
-    return flask.render_template("_base.html", content=h.render_node(content))
+    return flask.render_template("_base.html", content=h.fragment[content])

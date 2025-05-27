@@ -1,6 +1,7 @@
 import logging
 import secrets
 import textwrap
+import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -8,6 +9,7 @@ from http import HTTPStatus
 from typing import TypeVar, cast
 from uuid import uuid4
 
+import authlib.deprecate
 import authlib.integrations.flask_oauth2 as flask_oauth2
 import authlib.oauth2.rfc6749
 import authlib.oauth2.rfc6750
@@ -74,17 +76,20 @@ class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
         assert isinstance(request, OAuth2Request)
         assert isinstance(request.user, User)
         client = cast("Client", request.client)
-        assert isinstance(request.redirect_uri, str)
-        storage.store_authorization_code(
-            AuthorizationCode(
-                code=code,
-                user_id=request.user.sub,
-                client_id=client.get_client_id(),
-                redirect_uri=request.redirect_uri,
-                scope=request.scope,
-                nonce=request.data.get("nonce"),
+        with warnings.catch_warnings():
+            # Silence warnings for deprecated `OAuth2Request` properties.
+            warnings.simplefilter("ignore", authlib.deprecate.AuthlibDeprecationWarning)
+            assert isinstance(request.redirect_uri, str)
+            storage.store_authorization_code(
+                AuthorizationCode(
+                    code=code,
+                    user_id=request.user.sub,
+                    client_id=client.get_client_id(),
+                    redirect_uri=request.redirect_uri,
+                    scope=request.scope,
+                    nonce=request.data.get("nonce"),
+                )
             )
-        )
 
 
 class OpenIDCode(authlib.oidc.core.OpenIDCode):

@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Suppress deprecation warnings introduced in Authlib v1.6.
+
 ## v0.2.4 - 2025-04-19
 
 - Suppress exception logging on client errors in token endpoint.

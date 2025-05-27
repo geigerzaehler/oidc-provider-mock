@@ -2,6 +2,7 @@
 endopint.
 """
 
+import re
 from datetime import timedelta
 from http import HTTPStatus
 from typing import Any
@@ -230,7 +231,9 @@ def test_nonce_required_error(oidc_server: str):
     token_data = httpx.post(auth_url, data={"sub": faker.email()})
     with pytest.raises(
         AuthorizationError,
-        match='Authorization failed: invalid_request: Missing "nonce" in request',
+        match=re.compile(
+            r"Authorization failed: invalid_request: Missing ['\"]nonce['\"] in request"
+        ),
     ):
         client.fetch_token(token_data.headers["location"], state=state)
 
