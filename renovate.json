@@ -2,9 +2,10 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "timezone": "Europe/Berlin",
-  "schedule": ["before 8:00"],
+  "schedule": ["* 0-6 * * *"],
   "semanticCommits": "disabled",
   "lockFileMaintenance": {
-    "enabled": false
+    "enabled": true,
+    "schedule": ["* 0-6 12 * *"]
   }
 }
