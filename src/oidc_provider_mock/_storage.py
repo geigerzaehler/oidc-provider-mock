@@ -183,7 +183,7 @@ class Storage:
     _nonces: set[str]
 
     def __init__(self) -> None:
-        self.jwk = jose.RSAKey.generate_key(is_private=True)
+        self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
         self._clients = {}
         self._users = {}
         self._authorization_codes = {}
