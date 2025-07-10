@@ -79,15 +79,15 @@ class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
         with warnings.catch_warnings():
             # Silence warnings for deprecated `OAuth2Request` properties.
             warnings.simplefilter("ignore", authlib.deprecate.AuthlibDeprecationWarning)
-            assert isinstance(request.redirect_uri, str)
+            assert isinstance(request.redirect_uri, str)  # pyright: ignore[reportDeprecated]
             storage.store_authorization_code(
                 AuthorizationCode(
                     code=code,
                     user_id=request.user.sub,
                     client_id=client.get_client_id(),
-                    redirect_uri=request.redirect_uri,
-                    scope=request.scope,
-                    nonce=request.data.get("nonce"),
+                    redirect_uri=request.redirect_uri,  # pyright: ignore[reportDeprecated]
+                    scope=request.scope,  # pyright: ignore[reportDeprecated]
+                    nonce=request.data.get("nonce"),  # pyright: ignore[reportDeprecated]
                 )
             )
 
