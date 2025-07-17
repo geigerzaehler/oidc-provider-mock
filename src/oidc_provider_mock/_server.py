@@ -28,9 +28,9 @@ def run_server_in_thread(
 
     See `app <oidc_provider_mock.app>` for documentation of parameters.
 
-    >>> with run_server_in_thread(port=35432) as server:
+    >>> with run_server_in_thread(port=25432) as server:
     ...     print(f"Server listening at http://localhost:{server.server_port}")
-    Server listening at http://localhost:35432
+    Server listening at http://localhost:25432
 
     """
     return _threaded_server(
