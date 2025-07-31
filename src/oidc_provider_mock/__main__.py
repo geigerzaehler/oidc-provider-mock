@@ -18,8 +18,15 @@ _default_config = Config
 @click.option(
     "-p",
     "--port",
-    help="Port to start server on",
+    help="Port the server listens on",
     default=9400,
+    show_default=True,
+)
+@click.option(
+    "-H",
+    "--host",
+    help="IP address to bind the server to",
+    default="127.0.0.1",
     show_default=True,
 )
 @click.option(
@@ -61,6 +68,7 @@ _default_config = Config
 )
 def run(
     port: int,
+    host: str,
     *,
     require_registration: bool,
     require_nonce: bool,
@@ -88,6 +96,7 @@ def run(
         ),
         interface="wsgi",
         port=port,
+        host=host,
         log_config=None,
     )
 
