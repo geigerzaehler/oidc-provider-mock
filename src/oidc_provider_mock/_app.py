@@ -16,6 +16,7 @@ import authlib.oauth2.rfc6750
 import authlib.oidc.core
 import flask
 import flask.typing
+from flask import current_app
 import pydantic
 import werkzeug.debug
 import werkzeug.exceptions
@@ -190,6 +191,7 @@ class Config:
     require_nonce: bool = False
     issue_refresh_token: bool = True
     access_token_max_age: timedelta = timedelta(hours=1)
+    force_sub: str = ""
 
 
 @blueprint.record
@@ -206,6 +208,9 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
     setup_state.app.config["OAUTH2_REFRESH_TOKEN_GENERATOR"] = (
         config.issue_refresh_token
     )
+
+    print(setup_state.app.config)
+    setup_state.app.config["force_sub"] = config.force_sub
 
     authorization = flask_oauth2.AuthorizationServer()
     storage = Storage()
@@ -294,6 +299,7 @@ def app(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    force_sub: str = "",
 ) -> flask.Flask:
     """Create a Flask app running the OpenID provider.
 
@@ -309,6 +315,7 @@ def app(
         require_nonce=require_nonce,
         issue_refresh_token=issue_refresh_token,
         access_token_max_age=access_token_max_age,
+        force_sub=force_sub,
     )
     app.secret_key = secrets.token_bytes(16)
     if isinstance(app.json, flask.json.provider.DefaultJSONProvider):
@@ -324,6 +331,7 @@ def init_app(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    force_sub: str = "",
 ):
     """Add the OpenID provider and its endpoints to the flask ``app``.
 
@@ -337,6 +345,7 @@ def init_app(
     :param issue_refresh_token: If true (the default), the token endpoint response
         will include a refresh token.
     :param access_token_max_age: Max age of access and ID token after which it expires.
+    :param force_sub: Disables UI and provides the sub to all requests
 
     .. _nonce parameter: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
     """
@@ -348,6 +357,7 @@ def init_app(
             require_nonce=require_nonce,
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
+            force_sub=force_sub,
         ),
     )
 
@@ -433,7 +443,8 @@ def authorize() -> flask.typing.ResponseReturnValue:
         _logger.warning(f"invalid authorization request: {exc.description}")
         raise
 
-    if flask.request.method == "GET":
+    print(current_app.config)
+    if flask.request.method == "GET" and current_app.config["force_sub"] == "":
         return flask.render_template(
             "authorization_form.html",
             redirect_uri=redirect_uri,
@@ -447,7 +458,8 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 )()
             )
 
-        sub = flask.request.form.get("sub")
+        sub = flask.request.form.get("sub") if current_app.config["force_sub"] == "" else current_app.config["force_sub"]
+
         if sub is None:
             return flask.render_template(
                 "authorization_form.html",
