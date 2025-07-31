@@ -23,6 +23,13 @@ _default_config = Config
     show_default=True,
 )
 @click.option(
+    "-b",
+    "--bind",
+    help="Address to bind the server on",
+    default="127.0.0.1",
+    show_default=True,
+)
+@click.option(
     "-r",
     "--require-registration",
     help="Require client to register before they can request authentication",
@@ -59,13 +66,22 @@ _default_config = Config
     default=_default_config.access_token_max_age.total_seconds(),
     type=int,
 )
+@click.option(
+    "-s",
+    "--force-sub",
+    help="Disable UI and force a specifc sub/email for every request",
+    default="",
+    type=str,
+)
 def run(
     port: int,
+    bind: str,
     *,
     require_registration: bool,
     require_nonce: bool,
     no_refresh_token: bool,
     token_max_age: int,
+    force_sub: str
 ):
     """Start an OpenID Connect Provider for testing"""
 
@@ -85,9 +101,11 @@ def run(
             require_nonce=require_nonce,
             issue_refresh_token=not no_refresh_token,
             access_token_max_age=timedelta(seconds=token_max_age),
+            force_sub=force_sub,
         ),
         interface="wsgi",
         port=port,
+        host=bind,
         log_config=None,
     )
 
