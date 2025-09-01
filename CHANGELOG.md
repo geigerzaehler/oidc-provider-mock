@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+- Allow HTTP for all server and client hosts when running server from the CLI
+- Inform user how to fix "InsecureTransportError" when using the library
+
 ## v0.2.6 - 2025-08-01
 
 - Add `--host` option to CLI

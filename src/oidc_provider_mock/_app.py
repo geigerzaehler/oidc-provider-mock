@@ -12,6 +12,7 @@ from uuid import uuid4
 import authlib.deprecate
 import authlib.integrations.flask_oauth2 as flask_oauth2
 import authlib.oauth2.rfc6749
+import authlib.oauth2.rfc6749.errors
 import authlib.oauth2.rfc6750
 import authlib.oidc.core
 import flask
@@ -23,7 +24,7 @@ import werkzeug.local
 from authlib import jose
 from authlib.integrations.flask_oauth2.authorization_server import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
-from typing_extensions import override
+from typing_extensions import Never, override
 
 from . import _client
 from ._storage import (
@@ -596,6 +597,25 @@ def revoke_user_tokens(sub: str):
             storage.remove_refresh_token(refresh_token.token)
     return "", HTTPStatus.NO_CONTENT
 
+
+class InsecureTransportError(Exception):
+    def __init__(self):
+        super().__init__(
+            "OAuth 2 requires https. Set the environment variable"
+            "`AUTHLIB_INSECURE_TRANSPORT=1` to disable this check"
+        )
+
+
+def _insecure_transport_error_handler(
+    error: authlib.oauth2.rfc6749.errors.InsecureTransportError,
+) -> Never:
+    raise InsecureTransportError() from error
+
+
+blueprint.register_error_handler(
+    authlib.oauth2.rfc6749.errors.InsecureTransportError,
+    _insecure_transport_error_handler,
+)
 
 _Model = TypeVar("_Model", bound=pydantic.BaseModel)
 
