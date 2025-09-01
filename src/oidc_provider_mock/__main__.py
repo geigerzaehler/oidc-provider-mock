@@ -14,7 +14,9 @@ from ._app import Config
 _default_config = Config
 
 
-@click.command(context_settings={"max_content_width": 100})
+@click.command(
+    context_settings={"max_content_width": 100, "help_option_names": ["-h", "--help"]}
+)
 @click.option(
     "-p",
     "--port",
@@ -32,7 +34,7 @@ _default_config = Config
 @click.option(
     "-r",
     "--require-registration",
-    help="Require client to register before they can request authentication",
+    help="Require clients to register before they can request authentication",
     show_default=True,
     flag_value=True,
     default=_default_config.require_client_registration,
@@ -77,6 +79,7 @@ def run(
 ):
     """Start an OpenID Connect Provider for testing"""
 
+    os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
         Logfmter(
