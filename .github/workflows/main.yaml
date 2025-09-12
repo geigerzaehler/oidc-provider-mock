@@ -5,18 +5,10 @@ on:
     branches:
       - main
       - development
+      - release/candidate
   pull_request:
     branches:
       - main
-  workflow_call:
-    inputs:
-      build-to-publish:
-        description: >-
-          Set to true to check that the package can be published upload the
-          distribution as artifacts.
-        required: false
-        default: false
-        type: boolean
 
 env:
   FORCE_COLOR: 1
@@ -54,8 +46,6 @@ jobs:
           echo "UV_RESOLUTION=lowest-direct" >> "$GITHUB_ENV"
           uv lock --resolution lowest-direct --upgrade
       - run: uv sync --all-extras --locked
-      - if: inputs.build-to-publish
-        run: uv run ./dev/check_release_version.py
       - run: uv run ruff format --check
       - run: uv run ruff check
       - run: uv run pyright --warnings
@@ -69,7 +59,7 @@ jobs:
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
       - run: uv build
-      - if: matrix.python == '3.13' && inputs.build-to-publish
+      - if: matrix.python == '3.13' && github.ref_name == 'release/latest'
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
