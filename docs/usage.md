@@ -8,7 +8,9 @@ You can start the server using [`pipx`](https://pipx.pypa.io/latest/installation
 pipx run oidc-provider-mock
 ```
 
-You can also run the server programatically through the [Python API](project:#api).
+Run the command with `--help` to learn more about the options.
+
+You can also run the server programmatically through the [Python API](project:#api).
 
 ## Client configuration
 
