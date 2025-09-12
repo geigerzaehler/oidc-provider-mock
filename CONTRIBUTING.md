@@ -44,15 +44,12 @@ uv run dev/build_readme.py
 
 To prepare a release:
 
-1. Check out the main branch: `git fetch && git checkout main`
+1. `git fetch && git checkout release/latest`
+1. `git merge --ff origin/HEAD`
 1. Set the desired version in `./pyproject.toml`
 1. Run `uv lock`
 1. Update `CHANGELOG.md`
 1. Commit the changes with the message `release: vX.Y.Z`
-1. Tag the commit with `vX.Y.Z` and push the tag: `git tag vX.Y.Z && git push
-origin tag vX.Y.Z`
+1. `git push`
 
-The publish workflow will build and publish the release to PyPI.
-
-After a successful release, push the updated main branch: `git push origin
-main`.
+After main workflow is run the release workflow will publish the release.
