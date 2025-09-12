@@ -59,7 +59,7 @@ jobs:
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
       - run: uv build
-      - if: matrix.python == '3.13' && github.ref_name == 'release/latest'
+      - if: matrix.python == '3.13' && github.ref_name == 'release/candidate'
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
