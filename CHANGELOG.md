@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.2.7 - 2025-09-12
 
 - Allow HTTP for all server and client hosts when running server from the CLI
 - Inform user how to fix "InsecureTransportError" when using the library
