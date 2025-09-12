@@ -44,7 +44,7 @@ uv run dev/build_readme.py
 
 To prepare a release:
 
-1. `git fetch && git checkout release/latest`
+1. `git fetch && git checkout release/candidate`
 1. `git merge --ff origin/HEAD`
 1. Set the desired version in `./pyproject.toml`
 1. Run `uv lock`
