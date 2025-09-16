@@ -126,6 +126,32 @@ jobs:
             echo "⚠️ Failed to merge release into main branch" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
+  publish-container-image:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          image_base="ghcr.io/${{ github.repository }}"
+          docker buildx imagetools create \
+            --prefer-index=false \
+            --tag "${image_base}:${VERSION}" \
+            --tag "${image_base}:latest" \
+            "${image_base}:${{ github.sha }}"
+
+          repo_name="${{ github.event.repository.name }}"
+          package_url="${{ github.server_url }}/${{ github.repository }}/pkgs/container/${repo_name}"
+
+          echo "✅ Published container image [${image_base}:${VERSION}](${package_url})" | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+
   publish-pypi:
     needs:
       - verify

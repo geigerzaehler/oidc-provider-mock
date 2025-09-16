@@ -12,6 +12,21 @@ Run the command with `--help` to learn more about the options.
 
 You can also run the server programmatically through the [Python API](project:#api).
 
+The server is also available as a container image.
+
+```bash
+docker run -p 9400:9400 ghcr.io/geigerzaehler/oidc-provider-mock
+```
+
+The entry point for the image is `oidc-provider-mock --host 0.0.0.0`. You can
+pass CLI arguments to the container:
+
+```bash
+docker run -p 9400:9400 ghcr.io/geigerzaehler/oidc-provider-mock -- \
+    --require-registration \
+    --require-nonce
+```
+
 ## Client configuration
 
 To use the mock provider, configure your OIDC client’s provider URL
