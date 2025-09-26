@@ -1,3 +1,4 @@
+from collections import deque
 from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -181,6 +182,7 @@ class Storage:
     _access_tokens: dict[str, AccessToken]
     _refresh_tokens: dict[str, RefreshToken]
     _nonces: set[str]
+    _recent_subjects: deque[str]
 
     def __init__(self) -> None:
         self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
@@ -190,6 +192,7 @@ class Storage:
         self._access_tokens = {}
         self._refresh_tokens = {}
         self._nonces = set()
+        self._recent_subjects = deque()
 
     # User
 
@@ -198,6 +201,22 @@ class Storage:
 
     def store_user(self, user: User):
         self._users[user.sub] = user
+
+    def get_recent_subjects(self) -> Sequence[str]:
+        """Get a sequence of the 20 most recently recorded subjects, starting with
+        the most recent one.
+        """
+        return self._recent_subjects
+
+    def record_subject(self, sub: str) -> None:
+        try:
+            self._recent_subjects.remove(sub)
+        except ValueError:
+            pass
+
+        self._recent_subjects.appendleft(sub)
+        if len(self._recent_subjects) > 20:
+            self._recent_subjects.pop()
 
     # AuthorizationCodes
 
