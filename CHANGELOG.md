@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Return an error when the redirect URI is missing for an anonymous client.
+
 ## v0.2.7 - 2025-09-12
 
 - Allow HTTP for all server and client hosts when running server from the CLI
