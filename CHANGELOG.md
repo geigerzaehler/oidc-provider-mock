@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Show 20 most recently authenticated subjects in auth form
+
 ## v0.2.7 - 2025-09-12
 
 - Allow HTTP for all server and client hosts when running server from the CLI

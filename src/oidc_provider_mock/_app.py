@@ -439,7 +439,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
             "authorization_form.html",
             redirect_uri=redirect_uri,
             client_id=grant.client.id,
-            users=storage.get_latest_users(),
+            recent_subjects=storage.get_recent_subjects(),
         )
     else:
         if flask.request.form.get("action") == "deny":
@@ -455,7 +455,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 "authorization_form.html",
                 redirect_uri=redirect_uri,
                 client_id=grant.client.id,
-                users=storage.get_latest_users(),
+                recent_subjects=storage.get_recent_subjects(),
                 sub_missing=True,
             )
 
@@ -470,6 +470,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 "issued authorization code",
                 extra=({"client": grant.client, "user": user}),
             )
+            storage.record_subject(sub)
             return authorization.handle_response(*response)  # pyright: ignore
         except authlib.oauth2.OAuth2Error as error:
             _logger.warning("invalid authorization request", exc_info=True)

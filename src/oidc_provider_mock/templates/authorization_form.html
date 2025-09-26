@@ -1,11 +1,8 @@
-{% extends "_base.html" %} {% block content %}
+{% extends "_base.html" %}
+{% block content %}
 <h1>Authorize Client</h1>
 <p>Client ID: <code>{{ client_id }}</code></p>
-<p>
-{% for user in users %}
-<form method="post"><button type="submit" name="sub" value="{{ user }}">{{ user }}</button></form>
-{% endfor %}
-</p>
+
 <form method="post">
   {% if sub_missing %}
   <input
@@ -27,4 +24,14 @@
   <button type="submit" name="action" value="deny">Deny</button>
 </form>
 <p>You will be redirected to {{ redirect_uri }}</p>
+
+{% if recent_subjects %}
+<h2 id="heading-auth-previous">Authenticate previous users</h2>
+<form method="post" aria-labelledby="heading-auth-previous">
+{% for subject in recent_subjects %}
+  <button class="outline secondary" style="width: auto" type="submit" name="sub" value="{{ subject }}">{{ subject }}</button>
+{% endfor %}
+</form>
+{% endif %}
+
 {% endblock %}

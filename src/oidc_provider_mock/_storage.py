@@ -1,3 +1,4 @@
+from collections import deque
 from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -181,7 +182,7 @@ class Storage:
     _access_tokens: dict[str, AccessToken]
     _refresh_tokens: dict[str, RefreshToken]
     _nonces: set[str]
-    _latest_users: list[str]
+    _recent_subjects: deque[str]
 
     def __init__(self) -> None:
         self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
@@ -191,27 +192,31 @@ class Storage:
         self._access_tokens = {}
         self._refresh_tokens = {}
         self._nonces = set()
-        self._latest_users = []
+        self._recent_subjects = deque()
 
     # User
 
     def get_user(self, sub: str) -> User | None:
-        self._update_latest(sub)
         return self._users.get(sub)
 
     def store_user(self, user: User):
-        self._update_latest(user.sub)
         self._users[user.sub] = user
 
-    def _update_latest(self, sub: str):
-        if sub in self._latest_users:
-            self._latest_users.remove(sub)
-        self._latest_users.append(sub)
-        if len(self._latest_users) > 20:
-            del self._latest_users[0]
+    def get_recent_subjects(self) -> Sequence[str]:
+        """Get a sequence of the 20 most recently recorded subjects, starting with
+        the most recent one.
+        """
+        return self._recent_subjects
 
-    def get_latest_users(self) -> list[str]:
-        return sorted(self._latest_users)
+    def record_subject(self, sub: str) -> None:
+        try:
+            self._recent_subjects.remove(sub)
+        except ValueError:
+            pass
+
+        self._recent_subjects.appendleft(sub)
+        if len(self._recent_subjects) > 20:
+            self._recent_subjects.pop()
 
     # AuthorizationCodes
 
