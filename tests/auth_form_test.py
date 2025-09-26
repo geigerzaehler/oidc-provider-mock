@@ -1,3 +1,4 @@
+import re
 from http import HTTPStatus
 from urllib.parse import urlencode
 
@@ -60,6 +61,22 @@ def test_invalid_client(client: flask.testing.FlaskClient, method: str):
     assert response.status_code == 400
     assert "Error: invalid_client" in response.text
     assert "Redirect URI foo is not supported by client." in response.text
+
+
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_missing_redirect_uri(client: flask.testing.FlaskClient, method: str):
+    query = urlencode({
+        "client_id": str(faker.uuid4()),
+        "response_type": "code",
+    })
+    response = client.open(f"/oauth2/authorize?{query}", method=method)
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json
+    assert response.json["error"] == "invalid_request"
+    assert re.match(
+        r"Missing ['\"]redirect_uri['\"] in request\.",
+        response.json["error_description"],
+    )
 
 
 def test_missing_sub_parameter(client: flask.testing.FlaskClient):

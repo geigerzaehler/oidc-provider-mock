@@ -66,12 +66,12 @@ def test_custom_claims(oidc_server: str):
 
     client = _fake_client(issuer=oidc_server)
 
-    token_data = httpx.post(
+    response = httpx.post(
         client.authorization_url(state=state),
         data={"sub": subject},
     )
 
-    token_data = client.fetch_token(token_data.headers["location"], state=state)
+    token_data = client.fetch_token(response.headers["location"], state=state)
     assert token_data.claims["sub"] == subject
     assert token_data.claims["custom"] == "CLAIM"
 
