@@ -181,6 +181,7 @@ class Storage:
     _access_tokens: dict[str, AccessToken]
     _refresh_tokens: dict[str, RefreshToken]
     _nonces: set[str]
+    _latest_users: list[str]
 
     def __init__(self) -> None:
         self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
@@ -190,14 +191,27 @@ class Storage:
         self._access_tokens = {}
         self._refresh_tokens = {}
         self._nonces = set()
+        self._latest_users = []
 
     # User
 
     def get_user(self, sub: str) -> User | None:
+        self._update_latest(sub)
         return self._users.get(sub)
 
     def store_user(self, user: User):
+        self._update_latest(user.sub)
         self._users[user.sub] = user
+
+    def _update_latest(self, sub: str):
+        if sub in self._latest_users:
+            self._latest_users.remove(sub)
+        self._latest_users.append(sub)
+        if len(self._latest_users) > 20:
+            del self._latest_users[0]
+
+    def get_latest_users(self) -> list[str]:
+        return sorted(self._latest_users)
 
     # AuthorizationCodes
 

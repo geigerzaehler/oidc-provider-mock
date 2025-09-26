@@ -1,6 +1,11 @@
 {% extends "_base.html" %} {% block content %}
 <h1>Authorize Client</h1>
 <p>Client ID: <code>{{ client_id }}</code></p>
+<p>
+{% for user in users %}
+<form method="post"><button type="submit" name="sub" value="{{ user }}">{{ user }}</button></form>
+{% endfor %}
+</p>
 <form method="post">
   {% if sub_missing %}
   <input

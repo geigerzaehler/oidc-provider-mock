@@ -439,6 +439,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
             "authorization_form.html",
             redirect_uri=redirect_uri,
             client_id=grant.client.id,
+            users=storage.get_latest_users(),
         )
     else:
         if flask.request.form.get("action") == "deny":
@@ -454,6 +455,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 "authorization_form.html",
                 redirect_uri=redirect_uri,
                 client_id=grant.client.id,
+                users=storage.get_latest_users(),
                 sub_missing=True,
             )
 
