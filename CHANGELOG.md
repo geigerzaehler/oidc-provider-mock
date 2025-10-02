@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Show 20 most recently authenticated subjects in auth form
 - Return an error when the redirect URI is missing for an anonymous client.
 
 ## v0.2.7 - 2025-09-12

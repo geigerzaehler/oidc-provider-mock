@@ -77,7 +77,7 @@ def success():
     claims = flask.session[_SESSION_KEY_OIDC_CLAIMS]
     return _render_page(
         h.h1["Authentication Success"],
-        h.p[f"You’re logged in as {claims['sub']}"],
+        h.p["You’re logged in as ", h.mark[claims["sub"]]],
     )
 
 
