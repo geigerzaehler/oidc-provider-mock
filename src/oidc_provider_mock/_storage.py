@@ -52,9 +52,9 @@ class Client(authlib.oauth2.rfc6749.ClientMixin):
         return self.id
 
     @override
-    def get_default_redirect_uri(self) -> str:
+    def get_default_redirect_uri(self) -> str | None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if isinstance(self.redirect_uris, ClientAllowAny):
-            return "https://example.com"
+            return None
 
         return self.redirect_uris[0]
 
