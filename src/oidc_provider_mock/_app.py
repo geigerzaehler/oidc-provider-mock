@@ -105,7 +105,9 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
     @override
     def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportIncompatibleMethodOverride]
         return {
-            "key": storage.jwk,
+            # Make sure that we include "kid" in the token header
+            # (cf. https://github.com/authlib/authlib/issues/367#issuecomment-1815207094)
+            "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
             "alg": _JWS_ALG,
             "exp": int(self._token_max_mage.total_seconds()),
             "iss": flask.request.host_url.rstrip("/"),
