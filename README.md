@@ -113,7 +113,7 @@ how they differ from this project (to the best of my knowledge):
 - Identities (users) and clients must be statically configured.
 - Requires a non-trivial amount of configuration before it can be used.
 
-[`oauth2-proxy/mockoidc`](https://github.com/oauth2-proxy/mockoidc`)
+[`oauth2-proxy/mockoidc`](https://github.com/oauth2-proxy/mockoidc)
 
 - Does not have a CLI, only available as a Go library
 
