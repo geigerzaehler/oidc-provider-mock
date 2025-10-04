@@ -103,7 +103,7 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         return storage.exists_nonce(nonce)
 
     @override
-    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportUnknownParameterType]
         return {
             # Make sure that we include "kid" in the token header
             # (cf. https://github.com/authlib/authlib/issues/367#issuecomment-1815207094)
