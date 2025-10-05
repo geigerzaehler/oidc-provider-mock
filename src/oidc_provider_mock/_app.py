@@ -103,9 +103,9 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         return storage.exists_nonce(nonce)
 
     @override
-    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportUnknownParameterType]
         return {
-            "key": storage.jwk,
+            "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
             "alg": _JWS_ALG,
             "exp": int(self._token_max_mage.total_seconds()),
             "iss": flask.request.host_url.rstrip("/"),

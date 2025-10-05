@@ -1,5 +1,12 @@
 # Changes
 
+## Unreleased
+
+- Add `kid` field to JWT header ([#54][], [@rimi-itk][])
+
+[#54]: https://github.com/geigerzaehler/oidc-provider-mock/issues/54
+[@rimi-itk]: https://github.com/rimi-itk
+
 ## v0.2.8 - 2025-10-02
 
 - Show 20 most recently authenticated subjects in auth form
