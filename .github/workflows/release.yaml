@@ -14,23 +14,56 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changes: ${{ steps.changelog.outputs.changes }}
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-      - name: Verify commit message format
+
+      - id: version
         run: |
           version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          expected="release: v${version}"
+          echo "version=${version}" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Verify commit message format
+        run: |
+          expected="release: v${VERSION}"
 
           if [[ "$COMMIT_MESSAGE" != "$expected" ]]; then
             echo "❌ Invalid commit message format" | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "Expected: '$expected'" | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "Actual: '$COMMIT_MESSAGE'" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "❙ Actual: $COMMIT_MESSAGE" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "❙ Expected: $expected" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
+
+      - id: changelog
+        name: Verify CHANGELOG.md
+        continue-on-error: true
+        run: |
+          if ! grep -q "^## ${VERSION} - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$" CHANGELOG.md; then
+            echo "❌ CHANGELOG.md missing version entry" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "❙ Expected: '## ${VERSION} - YYYY-MM-DD'" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          if grep -q "^## Unreleased" CHANGELOG.md; then
+            echo "❌ CHANGELOG.md still contains 'Unreleased' section" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          changes=$(awk '/^## /{if(found){exit}else{found=1; next}} found' CHANGELOG.md)
+          {
+            echo "changes<<EOF"
+            echo "$changes"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
 
   publish-github:
     needs: verify
@@ -46,11 +79,10 @@ jobs:
 
       - name: Create and push git tag
         run: |
-          version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          tag="v${version}"
+          tag="v${VERSION}"
 
           if [ -n "$(git tag -l "${tag}")" ]; then
-            echo "- [ ] ⚠️Tag ${tag} already exists, skipping tag creation" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ Tag ${tag} already exists, skipping tag creation" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -58,36 +90,40 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${tag}"
           git push origin "${tag}"
-          echo "- [x] Tag ${tag} pushed" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "✅ Created tag ${tag}" | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
 
       - name: Update release/latest branch
         run: |
           git push origin HEAD:refs/heads/release/latest
-          echo "- [x] Updated branch release/latest" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "✅ Updated branch release/latest" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
         run: |
-          version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          name="v${version}"
+          name="v${VERSION}"
 
           if gh release view "${name}" >/dev/null 2>&1; then
-            echo "- [ ] ⚠️Release ${name} already exists, skipping release creation" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ Release ${name} already exists, skipping release creation" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           gh release create "${name}" \
             --title "${name}" \
+            --notes "${CHANGES}" \
             --target release/candidate
-          echo "- [x] GitHub release [${name}](${{ github.server_url }}/${{ github.repository }}/releases/tag/${name}) created" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "✅ GitHub release [${name}](${{ github.server_url }}/${{ github.repository }}/releases/tag/${name}) created" | tee -a "$GITHUB_STEP_SUMMARY"
         env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          CHANGES: ${{ needs.verify.outputs.changes }}
           GH_TOKEN: ${{ github.token }}
 
       - name: Update main branch
         run: |
           if git push origin HEAD:refs/heads/main; then
-            echo "- [x] Merge release into main branch" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "✅ Merge release into main branch" | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            echo "- [ ] ⚠️Failed to merge release into main branche" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ Failed to merge release into main branche" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
   publish-pypi:
