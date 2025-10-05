@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.2.9 - 2025-10-05
 
 - Add `kid` field to JWT header ([#54][], [@rimi-itk][])
 
