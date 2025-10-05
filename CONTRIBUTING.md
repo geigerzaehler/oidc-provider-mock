@@ -40,12 +40,15 @@ with
 uv run dev/build_readme.py
 ```
 
+For user-facing changes, add an entry under the “Unreleased” heading to
+`.CHANGELOG.md`.
+
 ## Releases
 
 To prepare a release:
 
 1. `git fetch && git checkout release/candidate`
-1. `git merge --ff origin/HEAD`
+1. `git merge --ff-only origin/HEAD`
 1. Set the desired version in `./pyproject.toml`
 1. Run `uv lock`
 1. Update `CHANGELOG.md`
