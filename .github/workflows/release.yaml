@@ -123,7 +123,7 @@ jobs:
           if git push origin HEAD:refs/heads/main; then
             echo "✅ Merge release into main branch" | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            echo "⚠️ Failed to merge release into main branche" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "⚠️ Failed to merge release into main branch" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
   publish-pypi:
