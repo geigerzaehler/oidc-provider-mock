@@ -98,17 +98,17 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Run smoke test
         run: |
-          docker run -d --name oidc-test -p 9400:9400 "${IMAGE}"
+          set -e
+          trap 'docker stop oidc-test >/dev/null 2>&1 || true; docker rm oidc-test >/dev/null 2>&1 || true' EXIT
+          docker run -d --name oidc-test -p 9400:9400 "${IMAGE}" || { echo "docker run failed"; exit 1; }
           for i in {1..5}; do
             sleep 1
             if curl -sf http://localhost:9400/; then
               echo "Successfully connected to container"
-              docker stop oidc-test
               exit 0
             fi
             echo "Attempt $i failed, retrying..."
           done
           echo "Failed to connect to container"
-          docker logs oidc-test
-          docker stop oidc-test
+          docker logs oidc-test || true
           exit 1
