@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Use Python 3.14 in container image
+
 ## v0.2.9 - 2025-10-05
 
 - Add `kid` field to JWT header ([#54][], [@rimi-itk][])
