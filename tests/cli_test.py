@@ -1,3 +1,4 @@
+import json
 import subprocess
 import time
 
@@ -6,7 +7,7 @@ import httpx
 
 def test_cli():
     with subprocess.Popen(
-        ["oidc-provider-mock"],
+        ["oidc-provider-mock", "--user-claims", json.dumps({"sub": "foo"})],
         stdin=None,
         text=True,
     ) as process:

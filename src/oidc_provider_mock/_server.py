@@ -1,5 +1,5 @@
 import threading
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from datetime import timedelta
 from typing import TYPE_CHECKING
@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from _typeshed.wsgi import WSGIApplication
 
 from ._app import app
+from ._storage import User
 
 assert __package__
 
@@ -21,6 +22,7 @@ def run_server_in_thread(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    user_claims: Sequence[User] = (),
 ) -> AbstractContextManager[werkzeug.serving.BaseWSGIServer]:
     """Run a OIDC provider server on a background thread.
 
@@ -40,6 +42,7 @@ def run_server_in_thread(
             require_nonce=require_nonce,
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
+            user_claims=user_claims,
         ),
     )
 

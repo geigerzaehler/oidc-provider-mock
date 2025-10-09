@@ -98,7 +98,11 @@ class Client(authlib.oauth2.rfc6749.ClientMixin):
 
 @dataclass(kw_only=True, frozen=True)
 class User:
+    #: Identifier ("subject") for the user
     sub: str
+
+    #: Additional claims to be included in the ID token and ``user_info`` endpoint
+    #: response.
     claims: dict[str, object] = field(default_factory=dict[str, object])
 
 

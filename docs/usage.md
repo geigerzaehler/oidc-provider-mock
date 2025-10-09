@@ -53,6 +53,10 @@ The “sub” input is the user identifier (“subject”) that is included in t
 token claims and user info response. By default, the value is also used for the
 `email` claim. (See also <project:#setting-claims>)
 
+If predefined users are configured (see <project:#predefined-users>), the
+authorization form displays a button for each user. Clicking a user button
+authorizes that user without entering credentials.
+
 When the user clicks “Authorize” they are redirected to the client application
 and the app can obtain the OpenID token with information about the user.
 
@@ -92,34 +96,58 @@ By default, only the [OpenID Connect core claims][core claims] and the `email`
 user info response. The value entered into the authentication form is used for
 the `sub` and `email` claims.
 
+(predefined-users)=
+
+### Predefined users
+
+You can add predefined users when starting the server using the `--user` option:
+
+```bash
+oidc-provider-mock --user alice
+```
+
+The `--user` option can be specified multiple times to configure multiple users.
+When predefined users exist, the authorization form shows a button for each user
+that allows authorization without entering credentials.
+
+Additional claims can be configured using `--user-claims`:
+
+```bash
+oidc-provider-mock \
+    --user-claims '{"sub": "alice", "email": "alice@example.com", "name": "Alice"}' \
+    --user-claims '{"sub": "bob", "email": "bob@example.com", "name": "Bob"}'
+```
+
+### Dynamic user configuration
+
 Additional claims can be added to a user identified by their `sub` value through
 the <project:#http_put_users> endpoint:
 
 ```bash
-curl -XPUT localhost:9400/users/alice1 \
+curl -XPUT localhost:9400/users/alice \
    --json '{"email": "alice@example.com", "custom": {"foo": 1}}'
 ```
 
-If you authenticate as `alice1` the ID token and the user info response will
+If you authenticate as `alice` the ID token and the user info response will
 include the `email` and `custom` fields above.
 
 ### Scopes and claims
 
-OpenID Connect [standard claims][] are only included in the ID token if the
-client and authorization request have the appropriate scope.
+OpenID Connect [standard claims][] like `email` are only included in the ID
+token if the client and authorization request have the appropriate scope.
 
 Consider the following claims:
 
 ```bash
-curl -XPUT localhost:9400/users/alice1 \
+curl -XPUT localhost:9400/users/alice \
    --json '{"email": "alice@example.com", "name": "Alice"}'
 ```
 
 The ID token contains the `email` and `name` claims only if `email` and
 `profile` are included in the authorization scope.
 
-The mapping from claims to scopes is documented in [“Requesting Claims using
-Scope Values”][scope claims].
+The mapping from claims to scopes is documented in ["Requesting Claims using
+Scope Values"][scope claims].
 
 [core claims]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
 [standard claims]: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims

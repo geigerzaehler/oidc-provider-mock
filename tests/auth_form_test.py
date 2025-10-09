@@ -9,6 +9,7 @@ from faker import Faker
 from playwright.sync_api import Page, expect
 
 from oidc_provider_mock._client_lib import OidcClient
+from oidc_provider_mock._storage import User
 
 from .conftest import use_provider_config
 
@@ -93,7 +94,7 @@ def test_missing_sub_parameter(client: flask.testing.FlaskClient):
     assert "The field is missing" in response.text
 
 
-def test_authorized_users_buttons_appear_xxx(oidc_server: str, page: Page):
+def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
     """Test that authorizing 3 users creates buttons on the auth page"""
 
     client = OidcClient(
@@ -128,3 +129,43 @@ def test_authorized_users_buttons_appear_xxx(oidc_server: str, page: Page):
 
     auth_buttons.nth(0).click()
     expect(page.locator("body")).to_contain_text(f"You’re logged in as {subject0}")
+
+
+@use_provider_config(
+    user_claims=(
+        User(sub="alice", claims={"email": "alice@example.com", "name": "Alice"}),
+        User(sub="bob", claims={"email": "bob@example.com"}),
+    )
+)
+def test_predefined_users_button(oidc_server: str, page: Page):
+    """Test that predefined users appear as buttons on the auth page"""
+
+    OidcClient(
+        id=str(faker.uuid4()),
+        secret=faker.password(),
+        redirect_uri=faker.uri(schemes=["https"]),
+        issuer=oidc_server,
+    )
+
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+
+    expect(
+        page.get_by_role("heading", name="Authenticate predefined users")
+    ).to_be_visible()
+
+    predefined_buttons = page.get_by_role(
+        "form", name="Authenticate predefined users"
+    ).get_by_role("button")
+
+    expect(predefined_buttons.nth(0)).to_have_accessible_name("alice")
+    expect(predefined_buttons.nth(1)).to_have_accessible_name("bob")
+
+    predefined_buttons.nth(0).click()
+    expect(page.locator("body")).to_contain_text("You’re logged in as alice")
+
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+    expect(
+        page.get_by_role("heading", name="Authenticate previous users")
+    ).not_to_be_visible()

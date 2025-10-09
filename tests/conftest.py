@@ -2,7 +2,7 @@
 
 import dataclasses
 import logging
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
@@ -18,6 +18,7 @@ typeguard.install_import_hook("oidc_provider_mock")
 import oidc_provider_mock  # noqa: E402
 import oidc_provider_mock._server  # noqa: E402
 from oidc_provider_mock._app import Config  # noqa: E402
+from oidc_provider_mock._storage import User  # noqa: E402
 
 
 @pytest.fixture
@@ -26,7 +27,9 @@ def app(request: pytest.FixtureRequest):
     marker = node.get_closest_marker("provider_config")
     if marker:
         config = marker.args[0]
-        app = oidc_provider_mock.app(**dataclasses.asdict(config))
+        app = oidc_provider_mock.app(**{
+            f.name: getattr(config, f.name) for f in dataclasses.fields(config)
+        })
     else:
         app = oidc_provider_mock.app()
 
@@ -45,6 +48,7 @@ def use_provider_config(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    user_claims: Sequence[User] = (),
 ) -> Callable[[_C], _C]:
     """Set configuration for the app under test."""
 
@@ -54,6 +58,7 @@ def use_provider_config(
             require_nonce=require_nonce,
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
+            user_claims=user_claims,
         ),
     )
 

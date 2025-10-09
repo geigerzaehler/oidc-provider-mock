@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+- Allow static configuration of users with `--user` and `--user-claims` options.
+  These users can be authenticated with one click.
+
 ## v0.2.9 - 2025-10-05
 
 - Add `kid` field to JWT header ([#54][], [@rimi-itk][])

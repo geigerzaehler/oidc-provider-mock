@@ -19,6 +19,7 @@ from oidc_provider_mock._client_lib import (
     AuthorizationServerError,
     OidcClient,
 )
+from oidc_provider_mock._storage import User
 
 from .conftest import use_provider_config
 
@@ -53,7 +54,7 @@ def test_auth_success(oidc_server: str):
     assert userinfo["sub"] == subject
 
 
-def test_custom_claims(oidc_server: str):
+def test_dynamic_claims(oidc_server: str):
     """Authenticate with additional claims in ID token and user info"""
 
     subject = faker.email()
@@ -77,6 +78,30 @@ def test_custom_claims(oidc_server: str):
 
     userinfo = client.fetch_userinfo(token=token_data.access_token)
     assert userinfo["sub"] == subject
+    assert userinfo["custom"] == "CLAIM"
+
+
+@use_provider_config(
+    user_claims=(User(sub="alice", claims={"custom": "CLAIM"}),),
+)
+def test_static_claims(oidc_server: str):
+    """Authenticate with claims configured statically"""
+
+    state = faker.password()
+
+    client = _fake_client(issuer=oidc_server)
+
+    response = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": "alice"},
+    )
+
+    token_data = client.fetch_token(response.headers["location"], state=state)
+    assert token_data.claims["sub"] == "alice"
+    assert token_data.claims["custom"] == "CLAIM"
+
+    userinfo = client.fetch_userinfo(token=token_data.access_token)
+    assert userinfo["sub"] == "alice"
     assert userinfo["custom"] == "CLAIM"
 
 
