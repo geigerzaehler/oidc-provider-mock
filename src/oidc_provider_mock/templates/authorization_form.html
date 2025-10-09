@@ -25,6 +25,15 @@
 </form>
 <p>You will be redirected to {{ redirect_uri }}</p>
 
+{% if predefined_users %}
+<h2 id="heading-auth-predefined">Authenticate predefined users</h2>
+<form method="post" aria-labelledby="heading-auth-predefined">
+{% for sub in predefined_users %}
+  <button class="outline" style="width: auto" type="submit" name="sub" value="{{ sub }}">{{ sub }}</button>
+{% endfor %}
+</form>
+{% endif %}
+
 {% if recent_subjects %}
 <h2 id="heading-auth-previous">Authenticate previous users</h2>
 <form method="post" aria-labelledby="heading-auth-previous">

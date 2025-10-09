@@ -66,3 +66,9 @@ HTML templates in `templates/` provide the authorization form UI:
 - CLI options in `__main__.py` for common settings
 - Environment-based configuration for colors and logging
 
+### Documentation
+
+- Build with `sphinx` using the `shibuya` theme
+- Pages contained in `docs/`
+- API docs are automatically generated with `sphinx.ext.autodoc` in `docs/api.rst`
+- If asked, write concise user documentation in line with the existing docs

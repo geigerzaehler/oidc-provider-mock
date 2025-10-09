@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -10,6 +11,7 @@ import uvicorn
 
 from . import app
 from ._app import Config
+from ._storage import User
 
 _default_config = Config
 
@@ -68,6 +70,20 @@ _default_config = Config
     default=_default_config.access_token_max_age.total_seconds(),
     type=int,
 )
+@click.option(
+    "--user",
+    "users",
+    help="Predefined user subject (can be specified multiple times)",
+    multiple=True,
+    type=str,
+)
+@click.option(
+    "--user-claims",
+    "user_claims_json",
+    help='Predefined user with claims as JSON (must include "sub" property, can be specified multiple times)',
+    multiple=True,
+    type=str,
+)
 def run(
     port: int,
     host: str,
@@ -76,8 +92,32 @@ def run(
     require_nonce: bool,
     no_refresh_token: bool,
     token_max_age: int,
+    users: tuple[str, ...],
+    user_claims_json: tuple[str, ...],
 ):
     """Start an OpenID Connect Provider for testing"""
+
+    user_claims_list: list[User] = []
+
+    for user in users:
+        user_claims_list.append(User(sub=user, claims={"email": user}))
+
+    for claims_json in user_claims_json:
+        try:
+            claims_dict: dict[str, object] | None = json.loads(claims_json)
+            if not isinstance(claims_dict, dict):
+                raise click.ClickException("--user-claims must be a JSON object")
+
+            sub = claims_dict.get("sub")
+            if not sub or not isinstance(sub, str):
+                raise click.ClickException(
+                    '--user-claims must include a "sub" property'
+                )
+
+            claims = {k: v for k, v in claims_dict.items() if k != "sub"}
+            user_claims_list.append(User(sub=sub, claims=claims))
+        except json.JSONDecodeError as e:
+            raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
 
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
@@ -96,6 +136,7 @@ def run(
             require_nonce=require_nonce,
             issue_refresh_token=not no_refresh_token,
             access_token_max_age=timedelta(seconds=token_max_age),
+            user_claims=user_claims_list,
         ),
         interface="wsgi",
         port=port,

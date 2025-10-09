@@ -191,6 +191,7 @@ class Config:
     require_nonce: bool = False
     issue_refresh_token: bool = True
     access_token_max_age: timedelta = timedelta(hours=1)
+    user_claims: Sequence[User] = ()
 
 
 @blueprint.record
@@ -210,6 +211,9 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
 
     authorization = flask_oauth2.AuthorizationServer()
     storage = Storage()
+
+    for user in config.user_claims:
+        storage.store_user(user)
 
     @setup_state.app.before_request
     def set_globals():
@@ -295,6 +299,7 @@ def app(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    user_claims: Sequence[User] = (),
 ) -> flask.Flask:
     """Create a Flask app running the OpenID provider.
 
@@ -310,6 +315,7 @@ def app(
         require_nonce=require_nonce,
         issue_refresh_token=issue_refresh_token,
         access_token_max_age=access_token_max_age,
+        user_claims=user_claims,
     )
     app.secret_key = secrets.token_bytes(16)
     if isinstance(app.json, flask.json.provider.DefaultJSONProvider):
@@ -325,6 +331,7 @@ def init_app(
     require_nonce: bool = False,
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
+    user_claims: Sequence[User] = (),
 ):
     """Add the OpenID provider and its endpoints to the flask ``app``.
 
@@ -338,6 +345,7 @@ def init_app(
     :param issue_refresh_token: If true (the default), the token endpoint response
         will include a refresh token.
     :param access_token_max_age: Max age of access and ID token after which it expires.
+    :param user_claims: Predefined users that can be authorized with one click.
 
     .. _nonce parameter: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
     """
@@ -349,6 +357,7 @@ def init_app(
             require_nonce=require_nonce,
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
+            user_claims=user_claims,
         ),
     )
 
@@ -434,12 +443,21 @@ def authorize() -> flask.typing.ResponseReturnValue:
         _logger.warning(f"invalid authorization request: {exc.description}")
         raise
 
+    config = flask.g.oidc_provider_mock_config
+    assert isinstance(config, Config)
+
+    predefined_users = [user.sub for user in config.user_claims]
+    recent_subjects = [
+        sub for sub in storage.get_recent_subjects() if sub not in predefined_users
+    ]
+
     if flask.request.method == "GET":
         return flask.render_template(
             "authorization_form.html",
             redirect_uri=redirect_uri,
             client_id=grant.client.id,
-            recent_subjects=storage.get_recent_subjects(),
+            recent_subjects=recent_subjects,
+            predefined_users=predefined_users,
         )
     else:
         if flask.request.form.get("action") == "deny":
@@ -455,7 +473,8 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 "authorization_form.html",
                 redirect_uri=redirect_uri,
                 client_id=grant.client.id,
-                recent_subjects=storage.get_recent_subjects(),
+                recent_subjects=recent_subjects,
+                predefined_users=predefined_users,
                 sub_missing=True,
             )
 
