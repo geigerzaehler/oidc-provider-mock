@@ -3,26 +3,39 @@
 <h1>Authorize Client</h1>
 <p>Client ID: <code>{{ client_id }}</code></p>
 
-<form method="post">
-  {% if sub_missing %}
-  <input
-    type="text"
-    name="sub"
-    placeholder="sub"
-    required
-    autofocus
-    aria-invalid="true"
-    aria-describedby="sub-missing"
-  />
-  <small id="sub-missing">The field is missing</small>
-  {% else %}
-  <input type="text" name="sub" placeholder="sub" required autofocus />
-  {% endif %}
-  <button type="submit">Authorize</button>
-</form>
-<form method="post">
-  <button type="submit" name="action" value="deny">Deny</button>
-</form>
+<style>
+  .form-grid {
+    display: grid;
+    grid-template:
+      "a a"
+      "b c" / 1fr 1fr;
+    column-gap: 1rem;
+  }
+</style>
+<div class="form-grid">
+  <form method="post" style="display: contents">
+    <div style="grid-area: a">
+      {% if sub_missing %}
+        <input
+          type="text"
+          name="sub"
+          placeholder="sub"
+          required
+          autofocus
+          aria-invalid="true"
+          aria-describedby="sub-missing"
+        />
+        <small id="sub-missing">The field is missing</small>
+      {% else %}
+        <input type="text" name="sub" placeholder="sub" required autofocus />
+      {% endif %}
+    </div>
+    <button type="submit">Authorize</button>
+  </form>
+  <form method="post">
+    <button type="submit" name="action" value="deny" class="contrast">Deny</button>
+  </form>
+</div>
 <p>You will be redirected to {{ redirect_uri }}</p>
 
 {% if predefined_users %}
