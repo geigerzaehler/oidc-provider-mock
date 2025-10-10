@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.3.0 - 2025-10-10
 
 - Allow static configuration of users with `--user` and `--user-claims` options.
   These users can be authenticated with one click.
