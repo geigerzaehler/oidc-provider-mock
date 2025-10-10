@@ -143,7 +143,7 @@ jobs:
             --prefer-index=false \
             --tag "${image_base}:${VERSION}" \
             --tag "${image_base}:latest" \
-            "${image_base}:${{ github.sha }}"
+            "${image_base}:${{ github.event.workflow_run.head_sha }}"
 
           repo_name="${{ github.event.repository.name }}"
           package_url="${{ github.server_url }}/${{ github.repository }}/pkgs/container/${repo_name}"
