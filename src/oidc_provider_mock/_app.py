@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import TypeVar, cast
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import authlib.deprecate
@@ -388,6 +389,7 @@ def openid_config():
         "token_endpoint": url_for(issue_token),
         "userinfo_endpoint": url_for(userinfo),
         "registration_endpoint": url_for(register_client),
+        "end_session_endpoint": url_for(end_session),
         "jwks_uri": url_for(jwks),
         "response_types_supported": Client.RESPONSE_TYPES_SUPPORTED,
         "response_modes_supported": ["query"],
@@ -618,6 +620,47 @@ def revoke_user_tokens(sub: str):
         if refresh_token.user_id == sub:
             storage.remove_refresh_token(refresh_token.token)
     return "", HTTPStatus.NO_CONTENT
+
+
+@blueprint.route("/oauth2/end_session", methods=["GET", "POST"])
+def end_session() -> flask.typing.ResponseReturnValue:
+    # https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
+    id_token_hint = flask.request.values.get("id_token_hint")
+    client_id = flask.request.values.get("client_id")
+    post_logout_redirect_uri = flask.request.values.get("post_logout_redirect_uri")
+    state = flask.request.values.get("state")
+    # Not handled: logout_hint and ui_locales
+
+    request_parameters = flask.request.values
+
+    redirect_uri = post_logout_redirect_uri
+    # Add a ny state value to the redirect URI
+    if redirect_uri is not None and state is not None:
+        query = {"state": state}
+        separator = "&" if "?" in redirect_uri else "?"
+        redirect_uri += separator + urlencode(query)
+
+    if flask.request.method == "GET":
+        return flask.render_template(
+            "end_session_form.html",
+            id_token_hint=id_token_hint,
+            client_id=client_id,
+            post_logout_redirect_uri=post_logout_redirect_uri,
+            redirect_uri=redirect_uri,
+            request_parameters=request_parameters,
+        )
+    else:
+        if flask.request.form.get("action") == "end_session":
+            if redirect_uri is not None:
+                return flask.redirect(redirect_uri)
+            else:
+                return flask.render_template(
+                    "end_session_form.html",
+                    session_ended=True,
+                )
+
+        # @todo Handle POST to end_session endpoint
+        raise Exception("POST")
 
 
 class InsecureTransportError(Exception):
