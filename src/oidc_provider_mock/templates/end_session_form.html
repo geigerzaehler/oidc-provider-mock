@@ -30,6 +30,9 @@
 
 <form method="post">
   <button type="submit" name="action" value="end_session">End session</button>
+  {% if redirect_uri %}
+  <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+  {% endif %}
 </form>
 {% if redirect_uri %}
 <p>You will be redirected to <code>{{ redirect_uri }}</code>.</p>
