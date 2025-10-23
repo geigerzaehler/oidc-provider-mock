@@ -624,20 +624,6 @@ def revoke_user_tokens(sub: str):
 
 @blueprint.route("/oauth2/end_session", methods=["GET", "POST"])
 def end_session() -> flask.typing.ResponseReturnValue:
-    # End session if our End session for has been POST'ed
-    if (
-        flask.request.method == "POST"
-        and flask.request.form.get("action") == "end_session"
-    ):
-        redirect_uri = flask.request.form.get("redirect_uri")
-        if redirect_uri is not None:
-            return flask.redirect(redirect_uri)
-        else:
-            return flask.render_template(
-                "end_session_form.html",
-                session_ended=True,
-            )
-
     # https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
     id_token_hint = flask.request.values.get("id_token_hint")
     client_id = flask.request.values.get("client_id")
@@ -661,7 +647,20 @@ def end_session() -> flask.typing.ResponseReturnValue:
         post_logout_redirect_uri=post_logout_redirect_uri,
         redirect_uri=redirect_uri,
         request_parameters=request_parameters,
+        end_session_confirm_url=flask.url_for(f".{end_session_confirm.__name__}"),
     )
+
+
+@blueprint.route("/oauth2/end_session/confirm", methods=["POST"])
+def end_session_confirm() -> flask.typing.ResponseReturnValue:
+    redirect_uri = flask.request.form.get("redirect_uri")
+    if redirect_uri is not None:
+        return flask.redirect(redirect_uri)
+    else:
+        return flask.render_template(
+            "end_session_confirm.html",
+            session_ended=True,
+        )
 
 
 class InsecureTransportError(Exception):

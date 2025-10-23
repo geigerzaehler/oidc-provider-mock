@@ -2,10 +2,6 @@
 {% block content %}
 <h1>End Session</h1>
 
-{% if session_ended %}
-<p>Session ended.</p>
-{% else %}
-
 <p>
     <strong>Important</strong>:
     The <a href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html">end session endpoint</a>
@@ -28,7 +24,7 @@
 <p>Recommended parameter <code>id_token_hint</code> not set (cf. <a href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout">https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout</a>).</p>
 {% endif %}
 
-<form method="post">
+<form method="post" action="{{ end_session_confirm_url }}">
   <button type="submit" name="action" value="end_session">End session</button>
   {% if redirect_uri %}
   <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
@@ -36,8 +32,6 @@
 </form>
 {% if redirect_uri %}
 <p>You will be redirected to <code>{{ redirect_uri }}</code>.</p>
-{% endif %}
-
 {% endif %}
 
 {% endblock %}
