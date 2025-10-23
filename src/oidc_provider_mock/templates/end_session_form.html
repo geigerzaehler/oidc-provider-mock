@@ -10,6 +10,7 @@
     OpenID Provider Mock does not keep track of a user session.
 </p>
 
+{% if request_parameters %}
 <details>
     <summary>Request parameters</summary>
     <dl>
@@ -19,6 +20,7 @@
         {% endfor %}
     </dl>
 </details>
+{% endif %}
 
 {% if not id_token_hint %}
 <p>Recommended parameter <code>id_token_hint</code> not set (cf. <a href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout">https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout</a>).</p>
