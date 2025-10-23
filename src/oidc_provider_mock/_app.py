@@ -648,7 +648,7 @@ def end_session() -> flask.typing.ResponseReturnValue:
     request_parameters = flask.request.values
 
     redirect_uri = post_logout_redirect_uri
-    # Add a ny state value to the redirect URI
+    # Add any state value to the redirect URI
     if redirect_uri is not None and state is not None:
         query = {"state": state}
         separator = "&" if "?" in redirect_uri else "?"
