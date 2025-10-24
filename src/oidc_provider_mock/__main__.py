@@ -5,9 +5,11 @@ import sys
 import time
 import traceback
 from datetime import timedelta
+from typing import TextIO, cast
 
 import click
 import uvicorn
+import yaml
 
 from . import app
 from ._app import Config
@@ -86,8 +88,8 @@ _default_config = Config
 )
 @click.option(
     "--user-claims-file",
-    help="A JSON file with a list of predefined user claims objects.",
-    type=str,
+    help="A YAML file with a list of predefined user claims objects.",
+    type=click.File(),
 )
 def run(
     port: int,
@@ -99,7 +101,7 @@ def run(
     token_max_age: int,
     users: tuple[str, ...],
     user_claims_json: tuple[str, ...],
-    user_claims_file: str,
+    user_claims_file: TextIO,
 ):
     """Start an OpenID Connect Provider for testing"""
 
@@ -111,37 +113,26 @@ def run(
     for claims_json in user_claims_json:
         try:
             claims_dict: dict[str, object] | None = json.loads(claims_json)
-            if not isinstance(claims_dict, dict):
-                raise click.ClickException("--user-claims must be a JSON object")
-
             user_claims_list.append(_decode_claims_dict(claims_dict))
         except json.JSONDecodeError as e:
             raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
 
     if user_claims_file:
-        if not os.path.isfile(user_claims_file):
-            raise click.ClickException("--user-claims-file must point to a valid file.")
-
         try:
-            with open(user_claims_file) as json_file:
-                user_claims_file_list: list[dict[str, object] | None] | None = (
-                    json.load(json_file)
-                )
-        except json.JSONDecodeError as e:
+            user_claims_file_list: list[dict[str, object] | None] | None = (
+                yaml.safe_load(user_claims_file)
+            )
+        except yaml.YAMLError as e:
             raise click.ClickException(
-                f"Invalid JSON in --user-claims-file: {e}"
+                f"Invalid YAML in --user-claims-file: {e}"
             ) from e
 
         if not isinstance(user_claims_file_list, list):
             raise click.ClickException(
-                "--user-claims-file must contain a JSON list at top level."
+                "--user-claims-file must contain a list at top level."
             )
 
         for claims_dict in user_claims_file_list:
-            if not isinstance(claims_dict, dict):
-                raise click.ClickException(
-                    "--user-claims-file must contain a list of only JSON objects."
-                )
             user_claims_list.append(_decode_claims_dict(claims_dict))
 
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -170,7 +161,14 @@ def run(
     )
 
 
-def _decode_claims_dict(claims_dict: dict[str, object]) -> User:
+def _decode_claims_dict(claims_dict: object) -> User:
+    if not isinstance(claims_dict, dict):
+        raise click.ClickException(
+            "user claims must be a JSON or YAML object."
+        )
+
+    claims_dict = cast(dict[str, object], claims_dict)
+
     sub = claims_dict.get("sub")
     if not sub or not isinstance(sub, str):
         raise click.ClickException('user claims must include a "sub" property')
