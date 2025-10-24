@@ -69,7 +69,7 @@ def test_redirect_after_end_session_confirm(oidc_server: str, page: Page):
     })
     page.goto(f"{oidc_server}/oauth2/end_session?{query}")
     page.get_by_role("button", name="End session").click()
-    expect(page).to_have_url(f"{oidc_server.rstrip('/')}/path")
+    expect(page).to_have_url(f"{oidc_server}path")
 
     query = urlencode({
         "post_logout_redirect_uri": "https://example.com/",
