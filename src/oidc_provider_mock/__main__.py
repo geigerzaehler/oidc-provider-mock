@@ -84,6 +84,11 @@ _default_config = Config
     multiple=True,
     type=str,
 )
+@click.option(
+    "--user-claims-file",
+    help="A JSON file with a list of predefined user claims objects.",
+    type=str,
+)
 def run(
     port: int,
     host: str,
@@ -94,6 +99,7 @@ def run(
     token_max_age: int,
     users: tuple[str, ...],
     user_claims_json: tuple[str, ...],
+    user_claims_file: str,
 ):
     """Start an OpenID Connect Provider for testing"""
 
@@ -108,16 +114,35 @@ def run(
             if not isinstance(claims_dict, dict):
                 raise click.ClickException("--user-claims must be a JSON object")
 
-            sub = claims_dict.get("sub")
-            if not sub or not isinstance(sub, str):
-                raise click.ClickException(
-                    '--user-claims must include a "sub" property'
-                )
-
-            claims = {k: v for k, v in claims_dict.items() if k != "sub"}
-            user_claims_list.append(User(sub=sub, claims=claims))
+            user_claims_list.append(_decode_claims_dict(claims_dict))
         except json.JSONDecodeError as e:
             raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
+
+    if user_claims_file:
+        if not os.path.isfile(user_claims_file):
+            raise click.ClickException("--user-claims-file must point to a valid file.")
+
+        try:
+            with open(user_claims_file) as json_file:
+                user_claims_file_list: list[dict[str, object] | None] | None = (
+                    json.load(json_file)
+                )
+        except json.JSONDecodeError as e:
+            raise click.ClickException(
+                f"Invalid JSON in --user-claims-file: {e}"
+            ) from e
+
+        if not isinstance(user_claims_file_list, list):
+            raise click.ClickException(
+                "--user-claims-file must contain a JSON list at top level."
+            )
+
+        for claims_dict in user_claims_file_list:
+            if not isinstance(claims_dict, dict):
+                raise click.ClickException(
+                    "--user-claims-file must contain a list of only JSON objects."
+                )
+            user_claims_list.append(_decode_claims_dict(claims_dict))
 
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
@@ -143,6 +168,15 @@ def run(
         host=host,
         log_config=None,
     )
+
+
+def _decode_claims_dict(claims_dict: dict[str, object]) -> User:
+    sub = claims_dict.get("sub")
+    if not sub or not isinstance(sub, str):
+        raise click.ClickException('user claims must include a "sub" property')
+
+    claims = {k: v for k, v in claims_dict.items() if k != "sub"}
+    return User(sub=sub, claims=claims)
 
 
 _LOG_RECORD_ATTRIBUTES = (
