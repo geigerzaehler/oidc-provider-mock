@@ -1,5 +1,7 @@
 # Changes
 
+- Added --user-claims-file to CLI which allows loading user claims as a JSON file.
+
 ## v0.3.0 - 2025-10-10
 
 - Allow static configuration of users with `--user` and `--user-claims` options.
