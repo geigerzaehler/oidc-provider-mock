@@ -626,10 +626,9 @@ def revoke_user_tokens(sub: str):
 def end_session() -> flask.typing.ResponseReturnValue:
     # https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
     id_token_hint = flask.request.values.get("id_token_hint")
-    client_id = flask.request.values.get("client_id")
     post_logout_redirect_uri = flask.request.values.get("post_logout_redirect_uri")
     state = flask.request.values.get("state")
-    # Not handled: logout_hint and ui_locales
+    # Not handled: client_id, logout_hint and ui_locales
 
     request_parameters = flask.request.values
 
@@ -643,8 +642,6 @@ def end_session() -> flask.typing.ResponseReturnValue:
     return flask.render_template(
         "end_session_form.html",
         id_token_hint=id_token_hint,
-        client_id=client_id,
-        post_logout_redirect_uri=post_logout_redirect_uri,
         redirect_uri=redirect_uri,
         request_parameters=request_parameters,
         end_session_confirm_url=flask.url_for(f".{end_session_confirm.__name__}"),
