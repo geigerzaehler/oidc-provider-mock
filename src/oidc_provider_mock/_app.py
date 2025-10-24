@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from typing import TypeVar, cast
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
 import authlib.deprecate
@@ -632,12 +632,16 @@ def end_session() -> flask.typing.ResponseReturnValue:
 
     request_parameters = flask.request.values
 
-    redirect_uri = post_logout_redirect_uri
     # Add any state value to the redirect URI
-    if redirect_uri is not None and state is not None:
-        query = {"state": state}
-        separator = "&" if "?" in redirect_uri else "?"
-        redirect_uri += separator + urlencode(query)
+    if post_logout_redirect_uri is not None and state is not None:
+        redirect_uri_parsed = urlparse(post_logout_redirect_uri)
+        query = parse_qs(redirect_uri_parsed.query, keep_blank_values=True)
+        query["state"] = [state]
+        redirect_uri = urlunparse(
+            redirect_uri_parsed._replace(query=urlencode(query, doseq=True))
+        )
+    else:
+        redirect_uri = post_logout_redirect_uri
 
     return flask.render_template(
         "end_session_form.html",
