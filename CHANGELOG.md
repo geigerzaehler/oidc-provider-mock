@@ -1,5 +1,7 @@
 # Changes
 
+## v0.3.1 - 2025-10-24
+
 - Implement [`end_session_endpoint'](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)
 
 ## v0.3.0 - 2025-10-10
