@@ -1,6 +1,6 @@
 # Changes
 
-- Added --user-claims-file to CLI which allows loading user claims as a JSON file.
+- Added --user-claims-file to CLI which allows loading user claims as a YAML/JSON file.
 
 ## v0.3.1 - 2025-10-24
 
