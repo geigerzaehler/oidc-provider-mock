@@ -1,0 +1,39 @@
+{% extends "_base.html" %}
+{% block content %}
+<h1>End Session</h1>
+
+<p>
+    <strong>Important</strong>:
+    The <a href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html">end session endpoint</a>
+    implemented in <a href="https://github.com/geigerzaehler/oidc-provider-mock">OpenID Provider Mock</a>
+    is just a dummy endpoint to simulate ending a session.
+    OpenID Provider Mock does not keep track of a user session.
+</p>
+
+{% if request_parameters %}
+<details>
+    <summary>Request parameters</summary>
+    <dl>
+        {% for name, value in request_parameters.items() %}
+        <dt><code>{{ name }}</code></dt>
+        <dd><code>{{ value }}</code></dd>
+        {% endfor %}
+    </dl>
+</details>
+{% endif %}
+
+{% if not id_token_hint %}
+<p>Recommended parameter <code>id_token_hint</code> not set (cf. <a href="https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout">https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout</a>).</p>
+{% endif %}
+
+<form method="post" action="{{ end_session_confirm_url }}">
+  <button type="submit">End session</button>
+  {% if redirect_uri %}
+  <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+  {% endif %}
+</form>
+{% if redirect_uri %}
+<p>You will be redirected to <code>{{ redirect_uri }}</code>.</p>
+{% endif %}
+
+{% endblock %}
