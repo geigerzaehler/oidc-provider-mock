@@ -5,9 +5,11 @@ import sys
 import time
 import traceback
 from datetime import timedelta
+from typing import TextIO, cast
 
 import click
 import uvicorn
+import yaml
 
 from . import app
 from ._app import Config
@@ -84,6 +86,11 @@ _default_config = Config
     multiple=True,
     type=str,
 )
+@click.option(
+    "--user-claims-file",
+    help="A YAML file with a list of predefined user claims objects.",
+    type=click.File(),
+)
 def run(
     port: int,
     host: str,
@@ -94,6 +101,7 @@ def run(
     token_max_age: int,
     users: tuple[str, ...],
     user_claims_json: tuple[str, ...],
+    user_claims_file: TextIO,
 ):
     """Start an OpenID Connect Provider for testing"""
 
@@ -105,19 +113,27 @@ def run(
     for claims_json in user_claims_json:
         try:
             claims_dict: dict[str, object] | None = json.loads(claims_json)
-            if not isinstance(claims_dict, dict):
-                raise click.ClickException("--user-claims must be a JSON object")
-
-            sub = claims_dict.get("sub")
-            if not sub or not isinstance(sub, str):
-                raise click.ClickException(
-                    '--user-claims must include a "sub" property'
-                )
-
-            claims = {k: v for k, v in claims_dict.items() if k != "sub"}
-            user_claims_list.append(User(sub=sub, claims=claims))
+            user_claims_list.append(_decode_claims_dict(claims_dict))
         except json.JSONDecodeError as e:
             raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
+
+    if user_claims_file:
+        try:
+            user_claims_file_list: list[dict[str, object] | None] | None = (
+                yaml.safe_load(user_claims_file)
+            )
+        except yaml.YAMLError as e:
+            raise click.ClickException(
+                f"Invalid YAML in --user-claims-file: {e}"
+            ) from e
+
+        if not isinstance(user_claims_file_list, list):
+            raise click.ClickException(
+                "--user-claims-file must contain a list at top level."
+            )
+
+        for claims_dict in user_claims_file_list:
+            user_claims_list.append(_decode_claims_dict(claims_dict))
 
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
@@ -143,6 +159,22 @@ def run(
         host=host,
         log_config=None,
     )
+
+
+def _decode_claims_dict(claims_dict: object) -> User:
+    if not isinstance(claims_dict, dict):
+        raise click.ClickException(
+            "user claims must be a JSON or YAML object."
+        )
+
+    claims_dict = cast(dict[str, object], claims_dict)
+
+    sub = claims_dict.get("sub")
+    if not sub or not isinstance(sub, str):
+        raise click.ClickException('user claims must include a "sub" property')
+
+    claims = {k: v for k, v in claims_dict.items() if k != "sub"}
+    return User(sub=sub, claims=claims)
 
 
 _LOG_RECORD_ATTRIBUTES = (
