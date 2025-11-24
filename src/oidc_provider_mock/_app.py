@@ -396,6 +396,7 @@ def openid_config():
         "grant_types_supported": Client.GRANT_TYPES_SUPPORTED,
         "scopes_supported": Client.SCOPES_SUPPORTED,
         "id_token_signing_alg_values_supported": [_JWS_ALG],
+        "subject_types_supported": ["public"],
     })
 
 
