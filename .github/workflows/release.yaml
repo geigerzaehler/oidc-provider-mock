@@ -43,11 +43,10 @@ jobs:
 
       - id: changelog
         name: Verify CHANGELOG.md
-        continue-on-error: true
         run: |
-          if ! grep -q "^## ${VERSION} - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$" CHANGELOG.md; then
+          if ! grep -q "^## v${VERSION} - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$" CHANGELOG.md; then
             echo "❌ CHANGELOG.md missing version entry" | tee -a "$GITHUB_STEP_SUMMARY"
-            echo "❙ Expected: '## ${VERSION} - YYYY-MM-DD'" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "❙ Expected: '## v${VERSION} - YYYY-MM-DD'" | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
