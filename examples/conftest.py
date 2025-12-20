@@ -1,5 +1,10 @@
+import multiprocessing
+
 import pytest
 from playwright.sync_api import Page
+
+# With the default method "forkserver" pytest-flask throws an error.
+multiprocessing.set_start_method("fork")
 
 
 @pytest.fixture
