@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Suppress deprecation warning introduced in Authlib v1.6.6.
+
 ## v0.3.2 - 2025-11-24
 
 - Add required `subject_types_supported` field to OpenID configuration document.
