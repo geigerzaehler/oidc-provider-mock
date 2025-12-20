@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.3.3 - 2025-12-20
 
 - Suppress deprecation warning introduced in Authlib v1.6.6.
 
