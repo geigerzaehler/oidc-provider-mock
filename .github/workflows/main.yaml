@@ -23,6 +23,7 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
         resolution: [highest]
         include:
           - python: "3.10"
@@ -59,7 +60,7 @@ jobs:
       - run: uv run pytest
       - run: uv run sphinx-build --fail-on-warning docs docs/dist
       - run: uv build
-      - if: matrix.python == '3.13'
+      - if: matrix.python == '3.14'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: python-package-distributions

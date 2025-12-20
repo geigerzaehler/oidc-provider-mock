@@ -69,7 +69,6 @@ dev = [
   "sphinx-autobuild>=2024.10.3",
   "sphinx>=8.1.3",
   "typeguard>=4.4.1",
-  "watchfiles>=1.0.3",
   "freezegun>=1.5.1",
   "ipython>=8.31.0",
 ]
@@ -88,6 +87,7 @@ addopts = """\
   --doctest-modules
   --tracing=retain-on-failure
   --pdbcls=IPython.terminal.debugger:TerminalPdb
+  -p no:pytest_flask
   """
 python_files = ["*_test.py", "*/examples/*.py"]
 python_classes = ""
