@@ -104,7 +104,9 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         return storage.exists_nonce(nonce)
 
     @override
-    def get_jwt_config(self, grant: authlib.oauth2.rfc6749.BaseGrant):  # pyright: ignore[reportUnknownParameterType]
+    def get_jwt_config(  # pyright: ignore[reportUnknownParameterType]
+        self, grant: authlib.oauth2.rfc6749.BaseGrant, client: object = None
+    ):
         return {
             "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
             "alg": _JWS_ALG,
