@@ -98,7 +98,8 @@ class OidcClient:
     def get_authorization_server_metadata(cls, provider_url: str):
         # TODO: validate response schema
         return (
-            httpx.get(
+            httpx
+            .get(
                 urljoin(provider_url, ".well-known/openid-configuration"),
                 follow_redirects=True,
             )
@@ -121,7 +122,8 @@ class OidcClient:
         # TODO: handle
         if endpoint := config.get("registration_endpoint"):
             content = (
-                httpx.post(
+                httpx
+                .post(
                     endpoint,
                     json={
                         "redirect_uris": [redirect_uri],
@@ -239,7 +241,8 @@ class OidcClient:
     def fetch_userinfo(self, token: str):
         # TODO: validate response schema
         return (
-            httpx.get(
+            httpx
+            .get(
                 self._userinfo_enpoint_url, headers={"authorization": f"bearer {token}"}
             )
             .raise_for_status()
