@@ -51,7 +51,7 @@ jobs:
       - run: uv run ruff check
       - run: uv run pyright --warnings
       - run: uv run ./dev/build_readme.py && git diff --exit-code -- README.md
-      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
+      - uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5
         with:
           path: |
             ~/.cache/ms-playwright
