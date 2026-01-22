@@ -23,7 +23,7 @@ import werkzeug.debug
 import werkzeug.exceptions
 import werkzeug.local
 from authlib import jose
-from authlib.integrations.flask_oauth2.authorization_server import FlaskOAuth2Request
+from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
 from typing_extensions import Never, override
 
@@ -48,7 +48,7 @@ _JWS_ALG = "RS256"
 
 class TokenValidator(authlib.oauth2.rfc6750.BearerTokenValidator):
     @override
-    def authenticate_token(self, token_string: str):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def authenticate_token(self, token_string: str):
         token = storage.get_access_token(token_string)
         if not token:
             raise authlib.oauth2.rfc6749.AccessDeniedError()
@@ -104,11 +104,11 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
         return storage.exists_nonce(nonce)
 
     @override
-    def get_jwt_config(  # pyright: ignore[reportUnknownParameterType]
+    def get_jwt_config(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, grant: authlib.oauth2.rfc6749.BaseGrant, client: object = None
     ):
         return {
-            "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+            "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownMemberType]
             "alg": _JWS_ALG,
             "exp": int(self._token_max_mage.total_seconds()),
             "iss": flask.request.host_url.rstrip("/"),
@@ -466,7 +466,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
         )
     else:
         if flask.request.form.get("action") == "deny":
-            return authorization.handle_response(  # pyright: ignore[reportUnknownMemberType]
+            return authorization.handle_response(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
                 *authlib.oauth2.rfc6749.AccessDeniedError(  # pyright: ignore[reportUnknownArgumentType]
                     redirect_uri=flask.request.args["redirect_uri"]
                 )()
@@ -595,7 +595,7 @@ def issue_token() -> flask.typing.ResponseReturnValue:
 
 
 @blueprint.route("/userinfo", methods=["GET", "POST"])
-@require_oauth()
+@require_oauth()  # pyright: ignore[reportUntypedFunctionDecorator]
 def userinfo():
     access_token = flask_oauth2.current_token
     assert isinstance(access_token, AccessToken)
