@@ -81,7 +81,17 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
+      - uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
         if: github.ref == 'refs/heads/release/candidate'
         with:
@@ -92,6 +102,7 @@ jobs:
         with:
           context: .
           load: true
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.ref == 'refs/heads/release/candidate' }}
           tags: |
             ${{ env.IMAGE }}
