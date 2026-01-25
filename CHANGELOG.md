@@ -1,5 +1,11 @@
 # Changes
 
+## v0.3.4 - 2026-01-25
+
+- Publish arm64 container images ([@tjarbo][])
+
+[@tjarbo]: https://github.com/tjarbo
+
 ## v0.3.3 - 2025-12-20
 
 - Suppress deprecation warning introduced in Authlib v1.6.6.
