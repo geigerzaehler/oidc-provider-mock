@@ -1,4 +1,4 @@
-FROM python:3.14-slim@sha256:9b81fe9acff79e61affb44aaf3b6ff234392e8ca477cb86c9f7fd11732ce9b6a
+FROM python:3.14-slim@sha256:0c6bb259d537411417dd3b0052730e237ec0b8bd66aeaf64f1804a142d5c23ae
 
 WORKDIR /app
 COPY dist/*.whl ./
