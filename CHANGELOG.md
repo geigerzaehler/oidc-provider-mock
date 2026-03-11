@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Added --user-claims-file to CLI which allows loading user claims as a YAML/JSON file.
+
 ## v0.3.4 - 2026-01-25
 
 - Publish arm64 container images ([@tjarbo][])
