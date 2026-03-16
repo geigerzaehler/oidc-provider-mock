@@ -1,65 +1,169 @@
 {% extends "_base.html" %}
 {% block content %}
-<h1>Authorize Client</h1>
-<p>Client ID: <code>{{ client_id }}</code></p>
-
-{% if predefined_users %}
-<h2 id="heading-auth-predefined">Authenticate predefined users</h2>
-<form method="post" aria-labelledby="heading-auth-predefined">
-{% for sub in predefined_users %}
-  <button class="outline" style="width: auto" type="submit" name="sub" value="{{ sub }}">{{ sub }}</button>
-{% endfor %}
-</form>
-{% endif %}
-
-{% if recent_subjects %}
-<h2 id="heading-auth-previous">Authenticate previous users</h2>
-<form method="post" aria-labelledby="heading-auth-previous">
-{% for subject in recent_subjects %}
-  <button class="outline secondary" style="width: auto" type="submit" name="sub" value="{{ subject }}">{{ subject }}</button>
-{% endfor %}
-</form>
-{% endif %}
-
 <style>
-  .form-grid {
-    display: grid;
-    grid-template:
-      "a a"
-      "b c" / 1fr 1fr;
-    column-gap: 1rem;
+  /*
+   * De-chunky Pico.
+   * https://github.com/picocss/pico/discussions/482#discussioncomment-14897555
+   */
+  :root {
+    --pico-form-element-spacing-vertical: 0.35rem;
+    --pico-form-element-spacing-horizontal: 0.75rem;
+    --pico-font-size: 1rem;
+  }
+
+  /* Headings are VERY big, bold, and brash by default. */
+  h2 {
+    --pico-font-size: 1.5rem;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    --pico-font-weight: 500;
+  }
+
+  /* Ends up with way too much space from uncollapsed margins. */
+  .quick-select > section {
+    margin-bottom: 0;
+  }
+
+  /* Keep user choices apart. */
+  .user-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .user-list > button {
+    /* Pico makes them full-width by default? */
+    width: auto;
+
+    /* Less empty space. */
+    margin-bottom: 0;
+    padding: 0.15rem var(--pico-form-element-spacing-horizontal);
+
+    /* Truncate really long ones */
+    max-width: 15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  button.outline:is(:hover, :focus-visible) {
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  /* Separate predefined and recent user lists. */
+  .quick-select > section:has(+section) {
+    border-right: 1px solid var(--pico-muted-border-color);
+  }
+
+  /* Soften up the debug info. */
+  .request-details {
+    font-size: 0.9rem;
+  }
+
+  .request-details th {
+    text-align: right;
+    color: var(--pico-muted-color);
+    font-weight: 500;
   }
 </style>
-{% if not only_predefined_users %}
-<div class="form-grid">
-  <form method="post" style="display: contents">
-    <div style="grid-area: a">
-      {% if sub_missing %}
-        <input
-          type="text"
-          name="sub"
-          placeholder="sub"
-          required
-          autofocus
-          aria-invalid="true"
-          aria-describedby="sub-missing"
-        />
-        <small id="sub-missing">The field is missing</small>
-      {% else %}
-        <input type="text" name="sub" placeholder="sub" required autofocus />
+<article>
+    <header>
+      <hgroup>
+        <h1>Authorize Client</h1>
+        <p>Choose an identity to authorize for this client.</p>
+        <p><small><strong>Click a predefined or recent user to authorize immediately.</strong></small></p>
+      </hgroup>
+
+      <table class="request-details">
+        <tbody>
+          <tr>
+            <th scope="row">Client ID</th>
+            <td><code>{{ client_id }}</code></td>
+          </tr>
+          <tr>
+            <th scope="row">Redirect URI</th>
+            <td><code>{{ redirect_uri }}</code></td>
+          </tr>
+          <tr>
+            <th scope="row">Scopes</th>
+            <td>
+              {% if scopes %}
+              {% for scope in scopes %}
+              <code>{{ scope }}</code>
+              {% endfor %}
+              {% else %}
+              {{ "&mdash;" | safe }}
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </header>
+
+    <div class="grid quick-select">
+      {% if predefined_users %}
+      <section>
+        <h2 id="heading-auth-predefined">As a predefined user</h2>
+        <form method="post" aria-labelledby="heading-auth-predefined" class="user-list">
+        {% for sub in predefined_users %}
+          <button class="outline" type="submit" name="sub" value="{{ sub }}" title="{{ sub }}">
+            {{ sub }}
+          </button>
+        {% endfor %}
+        </form>
+      </section>
+      {% endif %}
+
+      {% if not only_predefined_users %}
+      <section>
+        <h2 id="heading-auth-previous">As a recent user</h2>
+        <form method="post" aria-labelledby="heading-auth-previous" class="user-list">
+        {% if recent_subjects %}
+        {% for subject in recent_subjects %}
+          <button class="outline secondary" type="submit" name="sub" value="{{ subject }}" title="{{ subject }}">
+            {{ subject }}
+          </button>
+        {% endfor %}
+        {% else %}
+          <span>{{ "&mdash;" | safe }}</span>
+        {% endif %}
+        </form>
+      </section>
       {% endif %}
     </div>
-    <button type="submit">Authorize</button>
-  </form>
-  <form method="post">
-    <button type="submit" name="action" value="deny" class="contrast">Deny</button>
-  </form>
-</div>
-{% else %}
-<form method="post">
-  <button type="submit" name="action" value="deny" class="contrast">Deny</button>
-</form>
-{% endif %}
-<p>You will be redirected to {{ redirect_uri }}</p>
+
+    {% if not only_predefined_users %}
+    <hr />
+
+    <section class="page-section">
+      <h2>Or with a custom subject</h2>
+      <div class="form-grid">
+        <form method="post" class="subject-form">
+          <fieldset>
+            <div role="group">
+                <input
+                  id="subject-input"
+                  type="text"
+                  name="sub"
+                  placeholder="Subject"
+                  aria-label="Subject"
+                  required
+                  autofocus
+                />
+              <button type="submit">Authorize</button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </section>
+    {% endif %}
+
+    <footer class="page-footer">
+      <form method="post" class="deny-form">
+        <button type="submit" name="action" value="deny" class="secondary outline">Deny access</button>
+      </form>
+    </footer>
+</article>
 
 {% endblock %}

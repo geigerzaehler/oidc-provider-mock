@@ -30,7 +30,7 @@ def test_refresh(relying_party: TestServer, page: Page, oidc_server: str):
         assert response.status_code == 204
 
         page.goto(relying_party.url("/login"))
-        page.get_by_placeholder("sub").fill("alice@example.com")
+        page.get_by_label("Subject").fill("alice@example.com")
         page.get_by_role("button", name="Authorize").click()
 
         expect(page.locator("body")).to_contain_text(
@@ -54,7 +54,7 @@ def test_access_token_expired(relying_party: TestServer, oidc_server: str, page:
         assert response.status_code == 204
 
         page.goto(relying_party.url("/login"))
-        page.get_by_placeholder("sub").fill("alice@example.com")
+        page.get_by_label("Subject").fill("alice@example.com")
         page.get_by_role("button", name="Authorize").click()
 
         expect(page.locator("body")).to_contain_text(

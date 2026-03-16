@@ -95,7 +95,7 @@ def test_auth_code_login_playwright(
     page.goto(live_server.url("/login"))
 
     # Authorize with the provider
-    page.get_by_placeholder("sub").fill("alice@example.com")
+    page.get_by_label("Subject").fill("alice@example.com")
     page.get_by_role("button", name="Authorize").click()
 
     # Verify that we’re logged in
