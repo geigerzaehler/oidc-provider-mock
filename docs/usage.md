@@ -118,6 +118,9 @@ oidc-provider-mock \
     --user-claims '{"sub": "bob", "email": "bob@example.com", "name": "Bob"}'
 ```
 
+You can limit authentication to only predefined users using the
+`--only-predefined-users` flag.
+
 ### Dynamic user configuration
 
 Additional claims can be added to a user identified by their `sub` value through

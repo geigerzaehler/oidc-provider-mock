@@ -94,6 +94,42 @@ def test_missing_sub_parameter(client: flask.testing.FlaskClient):
     assert "The field is missing" in response.text
 
 
+@use_provider_config(
+    user_claims=(User(sub="alice", claims={"email": "alice@example.com"}),),
+    only_predefined_users=True,
+)
+def test_only_predefined_users_hides_sub_input(oidc_server: str, page: Page):
+    """When only_predefined_users is set, the manual sub input is hidden but Deny is visible."""
+    OidcClient(
+        id=str(faker.uuid4()),
+        secret=faker.password(),
+        redirect_uri=faker.uri(schemes=["https"]),
+        issuer=oidc_server,
+    )
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+
+    expect(page.get_by_placeholder("sub")).not_to_be_attached()
+    expect(page.get_by_role("button", name="Deny")).to_be_visible()
+
+
+@use_provider_config(
+    user_claims=(User(sub="alice", claims={"email": "alice@example.com"}),),
+)
+def test_without_only_predefined_users_shows_sub_input(oidc_server: str, page: Page):
+    """Without only_predefined_users, the manual sub input is visible."""
+    OidcClient(
+        id=str(faker.uuid4()),
+        secret=faker.password(),
+        redirect_uri=faker.uri(schemes=["https"]),
+        issuer=oidc_server,
+    )
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+
+    expect(page.get_by_placeholder("sub")).to_be_visible()
+
+
 def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
     """Test that authorizing 3 users creates buttons on the auth page"""
 

@@ -84,6 +84,12 @@ _default_config = Config
     multiple=True,
     type=str,
 )
+@click.option(
+    "--only-predefined-users",
+    help="Only allow authentication as predefined users; hides the manual sub input. Requires at least one --user or --user-claims.",
+    is_flag=True,
+    default=False,
+)
 def run(
     port: int,
     host: str,
@@ -94,6 +100,7 @@ def run(
     token_max_age: int,
     users: tuple[str, ...],
     user_claims_json: tuple[str, ...],
+    only_predefined_users: bool,
 ):
     """Start an OpenID Connect Provider for testing"""
 
@@ -119,6 +126,11 @@ def run(
         except json.JSONDecodeError as e:
             raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
 
+    if only_predefined_users and not user_claims_list:
+        raise click.UsageError(
+            "--only-predefined-users requires at least one --user or --user-claims"
+        )
+
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
@@ -137,6 +149,7 @@ def run(
             issue_refresh_token=not no_refresh_token,
             access_token_max_age=timedelta(seconds=token_max_age),
             user_claims=user_claims_list,
+            only_predefined_users=only_predefined_users,
         ),
         interface="wsgi",
         port=port,

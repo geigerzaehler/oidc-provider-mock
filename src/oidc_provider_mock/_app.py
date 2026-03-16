@@ -195,6 +195,7 @@ class Config:
     issue_refresh_token: bool = True
     access_token_max_age: timedelta = timedelta(hours=1)
     user_claims: Sequence[User] = ()
+    only_predefined_users: bool = False
 
 
 @blueprint.record
@@ -303,6 +304,7 @@ def app(
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
     user_claims: Sequence[User] = (),
+    only_predefined_users: bool = False,
 ) -> flask.Flask:
     """Create a Flask app running the OpenID provider.
 
@@ -319,6 +321,7 @@ def app(
         issue_refresh_token=issue_refresh_token,
         access_token_max_age=access_token_max_age,
         user_claims=user_claims,
+        only_predefined_users=only_predefined_users,
     )
     app.secret_key = secrets.token_bytes(16)
     if isinstance(app.json, flask.json.provider.DefaultJSONProvider):
@@ -335,6 +338,7 @@ def init_app(
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
     user_claims: Sequence[User] = (),
+    only_predefined_users: bool = False,
 ):
     """Add the OpenID provider and its endpoints to the flask ``app``.
 
@@ -349,6 +353,8 @@ def init_app(
         will include a refresh token.
     :param access_token_max_age: Max age of access and ID token after which it expires.
     :param user_claims: Predefined users that can be authorized with one click.
+    :param only_predefined_users: If true, hide the manual sub input and only allow
+        authentication as predefined users.
 
     .. _nonce parameter: https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
     """
@@ -361,6 +367,7 @@ def init_app(
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
             user_claims=user_claims,
+            only_predefined_users=only_predefined_users,
         ),
     )
 
@@ -456,6 +463,8 @@ def authorize() -> flask.typing.ResponseReturnValue:
         sub for sub in storage.get_recent_subjects() if sub not in predefined_users
     ]
 
+    only_predefined_users = config.only_predefined_users
+
     if flask.request.method == "GET":
         return flask.render_template(
             "authorization_form.html",
@@ -463,6 +472,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
             client_id=grant.client.id,
             recent_subjects=recent_subjects,
             predefined_users=predefined_users,
+            only_predefined_users=only_predefined_users,
         )
     else:
         if flask.request.form.get("action") == "deny":
@@ -480,6 +490,7 @@ def authorize() -> flask.typing.ResponseReturnValue:
                 client_id=grant.client.id,
                 recent_subjects=recent_subjects,
                 predefined_users=predefined_users,
+                only_predefined_users=only_predefined_users,
                 sub_missing=True,
             )
 

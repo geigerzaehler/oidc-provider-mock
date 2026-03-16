@@ -3,6 +3,24 @@
 <h1>Authorize Client</h1>
 <p>Client ID: <code>{{ client_id }}</code></p>
 
+{% if predefined_users %}
+<h2 id="heading-auth-predefined">Authenticate predefined users</h2>
+<form method="post" aria-labelledby="heading-auth-predefined">
+{% for sub in predefined_users %}
+  <button class="outline" style="width: auto" type="submit" name="sub" value="{{ sub }}">{{ sub }}</button>
+{% endfor %}
+</form>
+{% endif %}
+
+{% if recent_subjects %}
+<h2 id="heading-auth-previous">Authenticate previous users</h2>
+<form method="post" aria-labelledby="heading-auth-previous">
+{% for subject in recent_subjects %}
+  <button class="outline secondary" style="width: auto" type="submit" name="sub" value="{{ subject }}">{{ subject }}</button>
+{% endfor %}
+</form>
+{% endif %}
+
 <style>
   .form-grid {
     display: grid;
@@ -12,6 +30,7 @@
     column-gap: 1rem;
   }
 </style>
+{% if not only_predefined_users %}
 <div class="form-grid">
   <form method="post" style="display: contents">
     <div style="grid-area: a">
@@ -36,24 +55,11 @@
     <button type="submit" name="action" value="deny" class="contrast">Deny</button>
   </form>
 </div>
+{% else %}
+<form method="post">
+  <button type="submit" name="action" value="deny" class="contrast">Deny</button>
+</form>
+{% endif %}
 <p>You will be redirected to {{ redirect_uri }}</p>
-
-{% if predefined_users %}
-<h2 id="heading-auth-predefined">Authenticate predefined users</h2>
-<form method="post" aria-labelledby="heading-auth-predefined">
-{% for sub in predefined_users %}
-  <button class="outline" style="width: auto" type="submit" name="sub" value="{{ sub }}">{{ sub }}</button>
-{% endfor %}
-</form>
-{% endif %}
-
-{% if recent_subjects %}
-<h2 id="heading-auth-previous">Authenticate previous users</h2>
-<form method="post" aria-labelledby="heading-auth-previous">
-{% for subject in recent_subjects %}
-  <button class="outline secondary" style="width: auto" type="submit" name="sub" value="{{ subject }}">{{ subject }}</button>
-{% endfor %}
-</form>
-{% endif %}
 
 {% endblock %}

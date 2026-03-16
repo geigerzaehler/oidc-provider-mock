@@ -49,6 +49,7 @@ def use_provider_config(
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
     user_claims: Sequence[User] = (),
+    only_predefined_users: bool = False,
 ) -> Callable[[_C], _C]:
     """Set configuration for the app under test."""
 
@@ -59,6 +60,7 @@ def use_provider_config(
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
             user_claims=user_claims,
+            only_predefined_users=only_predefined_users,
         ),
     )
 
