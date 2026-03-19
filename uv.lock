@@ -832,7 +832,7 @@ dev = [
     { name = "pytest-playwright", specifier = "~=0.7.2" },
     { name = "pytest-randomly", specifier = "~=4.0" },
     { name = "pytest-watcher", specifier = "~=0.6.3" },
-    { name = "ruff", specifier = "~=0.15.0" },
+    { name = "ruff", specifier = "==0.15.0" },
     { name = "shibuya", specifier = "~=2026.1" },
     { name = "sphinx", specifier = "~=9.1" },
     { name = "sphinx-autobuild", specifier = "~=2025.8" },
