@@ -1,240 +1,118 @@
 {% extends "_base.html" %}
+
+{% macro identity_list(subjects) %}
+  <ul class="saved-identity-list">
+    {% for subject in subjects %}
+      <li>
+        <form method="post">
+          <button class="outline authorize-button"
+                  type="submit"
+                  name="sub"
+                  aria-label="Authorize as {{ subject }}"
+                  value="{{ subject }}">
+            <span data-controller="overflow-title">{{ subject }}</span>
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
+
 {% block content %}
-<style>
-  /*
-   * De-chunky Pico.
-   * https://github.com/picocss/pico/discussions/482#discussioncomment-14897555
-   */
-  :root {
-    --pico-form-element-spacing-vertical: 0.35rem;
-    --pico-form-element-spacing-horizontal: 0.75rem;
-    --pico-font-size: 1rem;
-  }
+  <hgroup>
+    <h1>Authorize Client</h1>
+    <p>Choose an identity to use.</p>
+  </hgroup>
 
-  /* Headings are VERY big, bold, and brash by default. */
-  h2 {
-    --pico-font-size: 1.3rem;
-  }
+  <article>
 
-  h1, h2, h3, h4, h5, h6 {
-    --pico-font-weight: 500;
-  }
 
-  /* Create the custom selector list for predefined/recent identities. */
-  .saved-identity-list {
-    margin: 0;
-    padding: 0;
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
-    overflow: hidden;
-  }
+    {% if predefined_users %}
+      <section aria-labelledby="heading-auth-predefined">
 
-  .saved-identity-list > li {
-    list-style: none;
-    margin-bottom: 0;
-  }
-
-  .saved-identity-list > li + li {
-    border-top: 1px solid var(--pico-muted-border-color);
-  }
-
-  .saved-identity-button {
-    margin-bottom: 0;
-    border: 0;
-    border-radius: 0;
-    padding: 0.75rem 1rem;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1rem;
-    background: transparent;
-    color: inherit;
-    text-align: left;
-  }
-
-  .saved-identity-label {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .saved-identity-action {
-    color: var(--pico-primary);
-    white-space: nowrap;
-    font-size: 0.95rem;
-  }
-
-  .saved-identity-button:is(:hover, :focus-visible) {
-    background-color: color-mix(in srgb, var(--pico-primary) 6%, transparent);
-  }
-  .saved-identity-button:is(:hover, :focus-visible) .saved-identity-action {
-    text-decoration: underline;
-    text-shadow: 0.25px 0 currentColor;
-  }
-
-  /* Prevent the "Authorize" button from wrapping. */
-  .subject-form fieldset button {
-    flex: 0 0 auto;
-  }
-
-  /* Soften up the debug info. */
-  .request-details {
-    font-size: 0.9rem;
-  }
-
-  .request-details th {
-    text-align: right;
-    color: var(--pico-muted-color);
-    font-weight: 500;
-  }
-
-  /* Pico has a trailing horizontal rule on all tables. */
-  .request-details tr:not(:has(+ tr)) :is(td, th) {
-    border-bottom: 0px !important;
-  }
-
-  /* Pico outline hover state is not easily noticeable. */
-  button.outline:is(:hover, :focus-visible) {
-    background-color: color-mix(in srgb, currentColor 8%, transparent);
-  }
-</style>
-<article>
-    <header>
-      <hgroup>
-        <h1>Authorize Client</h1>
-        <p>Choose an identity to use.</p>
-      </hgroup>
-    </header>
-
-    {% if predefined_users or recent_subjects %}
-    <div class="grid quick-select">
-      {% if predefined_users %}
-      <section>
-        <h2 id="heading-auth-predefined">Predefined users</h2>
-        <ul aria-labelledby="heading-auth-predefined" class="saved-identity-list">
-        {% for sub in predefined_users %}
-          <li>
-            <form method="post">
-              <button
-                class="saved-identity-button"
-                type="submit"
-                name="sub"
-                value="{{ sub }}"
-                aria-label="Authorize as {{ sub }}"
-              >
-                <span class="saved-identity-label" aria-hidden="true">{{ sub }}</span>
-                <span class="saved-identity-action" aria-hidden="true">Authorize &rsaquo;</span>
-              </button>
-            </form>
-          </li>
-        {% endfor %}
-        </ul>
+        <h3 id="heading-auth-predefined">Predefined users</h3>
+        {{ identity_list(predefined_users) }}
       </section>
-      {% endif %}
-
-      {% if recent_subjects %}
-      <section>
-        <h2 id="heading-auth-previous">Recent subjects</h2>
-        <ul aria-labelledby="heading-auth-previous" class="saved-identity-list">
-        {% for subject in recent_subjects %}
-          <li>
-            <form method="post">
-              <button
-                class="saved-identity-button"
-                type="submit"
-                name="sub"
-                value="{{ subject }}"
-                aria-label="Authorize as {{ subject }}"
-              >
-                <span class="saved-identity-label" aria-hidden="true">{{ subject }}</span>
-                <span class="saved-identity-action" aria-hidden="true">Authorize &rsaquo;</span>
-              </button>
-            </form>
-          </li>
-        {% endfor %}
-        </ul>
-      </section>
-      {% endif %}
-    </div>
     {% endif %}
 
-    <section class="page-section">
-      <h2>Use a custom subject</h2>
-      <div class="form-grid">
-        <form method="post" class="subject-form">
-          <fieldset>
-            <div role="group">
-              <input
-                id="subject-input"
-                type="text"
-                name="sub"
-                placeholder="Subject"
-                aria-label="Subject"
-                required
-                autofocus
-              />
-              <button type="submit" aria-label="Authorize">Authorize &rsaquo;</button>
-            </div>
-          </fieldset>
-        </form>
-      </div>
-    </section>
 
-    <hr />
-
-    <section aria-labelledby="heading-client-info">
-      <h2 id="heading-client-info">Client info</h2>
-      <table class="request-details">
-        <tbody>
-          <tr>
-            <th scope="row">Client ID</th>
-            <td><code>{{ client_id }}</code></td>
-          </tr>
-          <tr>
-            <th scope="row">Redirect URI</th>
-            <td><code>{{ redirect_uri }}</code></td>
-          </tr>
-          <tr>
-            <th scope="row">Scopes</th>
-            <td>
-              {% if scopes %}
-              {% for scope in scopes %}
-              <code>{{ scope }}</code>
-              {% endfor %}
-              {% else %}
-              {{ "&mdash;" | safe }}
-              {% endif %}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <footer class="page-footer">
-      <form method="post" class="deny-form">
-        <button type="submit" name="action" value="deny" class="secondary outline">Deny access</button>
+    <section>
+      <h3>Custom user</h3>
+      <form method="post">
+        <fieldset role="group">
+          <input id="subject-input"
+                 type="text"
+                 name="sub"
+                 placeholder="Subject"
+                 aria-label="Subject"
+                 required
+                 autofocus />
+          <button type="submit" class="outline">Authorize</button>
+        </fieldset>
       </form>
-    </footer>
-</article>
+    </section>
 
-<script type="module">
-  function setTitlesForEliptedSubjects() {
-    for (const button of document.querySelectorAll(".saved-identity-button")) {
-      const label = button.querySelector(".saved-identity-label");
-      const isTruncated = label.scrollWidth > label.clientWidth;
+    {% if recent_subjects %}
+      <section aria-labelledby="heading-auth-previous">
+        <h3 id="heading-auth-previous">Recent users</h3>
+        {{ identity_list(recent_subjects) }}
+      </section>
+    {% endif %}
+    <hr>
+    <form method="post">
+      <button type="submit"
+              name="action"
+              value="deny"
+              class="secondary outline"
+              style="width: auto;
+                     margin-left: auto;
+                     margin-bottom: 0">Deny access</button>
+    </form>
+  </article>
+
+  <article aria-labelledby="heading-client-info">
+    <h2 id="heading-client-info">Client info</h2>
+    <table class="request-details">
+      <tbody>
+        <tr>
+          <th scope="row">Client ID</th>
+          <td>
+            <code>{{ client_id }}</code>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Redirect URI</th>
+          <td>
+            <code>{{ redirect_uri }}</code>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Scopes</th>
+          <td>
+            {% for scope in scopes %}<code>{{ scope }}</code> {% endfor %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <script type="module">
+
+  document.querySelectorAll("[data-controller=overflow-title]").forEach((element) => registerResizeObserverOn(element))
+
+  function setTitlesForEliptedSubject(element) {
+      const button = element.closest("button")
+      const isTruncated = element.scrollWidth > element.clientWidth;
 
       if (isTruncated) {
-        button.title = label.textContent?.trim() ?? "";
+        button.title = element.textContent?.trim() ?? "";
       } else {
         button.removeAttribute("title");
       }
-    }
   };
 
-  function registerResizeObserverOn(parentElement) {
-    if (!parentElement) {
-      return;
-    }
+  function registerResizeObserverOn(element) {
+    setTitlesForEliptedSubject(element);
 
     let resizeFrame = 0;
 
@@ -245,16 +123,52 @@
 
       resizeFrame = requestAnimationFrame(() => {
         resizeFrame = 0;
-        setTitlesForEliptedSubjects();
+        setTitlesForEliptedSubject(element);
       });
-    }).observe(parentElement);
+    }).observe(element);
   }
 
-  // Set for the FCP.
-  setTitlesForEliptedSubjects();
 
-  // Recalculate if the width of the quick select group changes.
-  registerResizeObserverOn(document.querySelector(".quick-select"));
-</script>
+  </script>
+  <style>
+      :root {
+          --pico-form-element-spacing-vertical: 0.5rem;
+          --pico-form-element-spacing-horizontal: 1rem;
+      }
 
+      .saved-identity-list {
+          padding: 0;
+      }
+
+      @media (min-width: 40rem) {
+          .saved-identity-list {
+              column-count: 2
+          }
+      }
+
+      .authorize-button {
+          text-align: left;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+      }
+
+      .saved-identity-list>li {
+          list-style: none;
+      }
+
+      .request-details {
+          font-size: 0.9rem;
+      }
+
+      .request-details th {
+          text-align: right;
+          color: var(--pico-muted-color);
+          font-weight: 500;
+      }
+
+      .request-details tr:last-of-type * {
+          border-bottom: 0;
+      }
+  </style>
 {% endblock %}

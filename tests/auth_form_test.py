@@ -145,12 +145,12 @@ def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
 
-    expect(page.get_by_role("heading", name="Recent subjects")).to_be_visible()
+    expect(page.get_by_role("heading", name="Recent users")).to_be_visible()
 
     auth_buttons = (
         page
         .locator("section")
-        .filter(has=page.get_by_role("heading", name="Recent subjects"))
+        .filter(has=page.get_by_role("heading", name="Recent users"))
         .get_by_role("button")
     )
 
@@ -176,7 +176,7 @@ def test_recent_users_section_is_hidden_when_no_recent_users(
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
 
-    expect(page.get_by_role("heading", name="Recent subjects")).not_to_be_attached()
+    expect(page.get_by_role("heading", name="Recent users")).not_to_be_attached()
 
 
 @use_provider_config(
@@ -215,4 +215,4 @@ def test_predefined_users_button(oidc_server: str, page: Page):
 
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
-    expect(page.get_by_role("heading", name="Recent subjects")).not_to_be_attached()
+    expect(page.get_by_role("heading", name="Recent users")).not_to_be_attached()
