@@ -96,7 +96,7 @@ def test_auth_code_login_playwright(
 
     # Authorize with the provider
     page.get_by_label("Subject").fill("alice@example.com")
-    page.get_by_role("button", name="Authorize").click()
+    page.get_by_role("button", name="Authorize", exact=True).click()
 
     # Verify that we’re logged in
     expect(page.locator("body")).to_contain_text("Welcome Alice (alice@example.com)")

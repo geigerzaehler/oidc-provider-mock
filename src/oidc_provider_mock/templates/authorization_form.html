@@ -100,7 +100,7 @@
 
   document.querySelectorAll("[data-controller=overflow-title]").forEach((element) => registerResizeObserverOn(element))
 
-  function setTitlesForEliptedSubject(element) {
+  function setTitlesForEllipsizedSubject(element) {
       const button = element.closest("button")
       const isTruncated = element.scrollWidth > element.clientWidth;
 
@@ -112,7 +112,7 @@
   };
 
   function registerResizeObserverOn(element) {
-    setTitlesForEliptedSubject(element);
+    setTitlesForEllipsizedSubject(element);
 
     let resizeFrame = 0;
 
@@ -123,7 +123,7 @@
 
       resizeFrame = requestAnimationFrame(() => {
         resizeFrame = 0;
-        setTitlesForEliptedSubject(element);
+        setTitlesForEllipsizedSubject(element);
       });
     }).observe(element);
   }
