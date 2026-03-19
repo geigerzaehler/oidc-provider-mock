@@ -3,7 +3,6 @@
 [Flask-OIDC](https://flask-oidc.readthedocs.io/en/stable/).
 """
 
-import re
 from urllib.parse import quote
 
 import httpx
