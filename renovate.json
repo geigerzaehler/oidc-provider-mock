@@ -17,6 +17,11 @@
       "schedule": ["* 0-8 11 * *"]
     },
     {
+      "description": "Don't group ruff and pyright, they brake easily",
+      "matchPackageNames": ["ruff", "pyright"],
+      "groupName": null
+    },
+    {
       "description": "Don't group minor updates for 0.x packages",
       "matchCurrentVersion": "/^v?0\\./",
       "matchUpdateTypes": ["minor"],
