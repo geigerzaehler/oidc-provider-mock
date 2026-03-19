@@ -23,7 +23,6 @@ def run_server_in_thread(
     issue_refresh_token: bool = True,
     access_token_max_age: timedelta = timedelta(hours=1),
     user_claims: Sequence[User] = (),
-    only_predefined_users: bool = False,
 ) -> AbstractContextManager[werkzeug.serving.BaseWSGIServer]:
     """Run a OIDC provider server on a background thread.
 
@@ -44,7 +43,6 @@ def run_server_in_thread(
             issue_refresh_token=issue_refresh_token,
             access_token_max_age=access_token_max_age,
             user_claims=user_claims,
-            only_predefined_users=only_predefined_users,
         ),
     )
 
