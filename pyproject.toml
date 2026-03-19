@@ -4,7 +4,7 @@ version = "0.3.4"
 description = "OpenID Connect provider server for testing authentication"
 authors = [{ name = "Thomas Scholtes", email = "geigerzaehler@axiom.fm" }]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 keywords = [
   "OpenID Connect",
@@ -36,7 +36,7 @@ dependencies = [
   "httpx>=0.26",
   "htpy>=25.2.0",
   "joserfc>=1.0.3",
-  "pydantic>=2.0",
+  "pydantic>=2.3",
   "typing-extensions>=4.0",
   "uvicorn>=0.30.0",
 ]

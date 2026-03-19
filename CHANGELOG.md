@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Require Python >=3.12 and Pydantic >=2.3
+
 ## v0.3.4 - 2026-01-25
 
 - Publish arm64 container images ([@tjarbo][])
