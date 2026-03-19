@@ -6,7 +6,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 import docutils.nodes
 import sphinx.addnodes
@@ -14,7 +14,6 @@ from sphinx.application import Sphinx
 from sphinx.builders import Builder
 from sphinx.domains import Domain
 from sphinx.environment import BuildEnvironment
-from typing_extensions import override
 
 # Allow autodoc to import modules
 sys.path.insert(0, str(Path("..", "src").resolve()))
