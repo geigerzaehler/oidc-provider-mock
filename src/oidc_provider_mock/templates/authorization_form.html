@@ -13,47 +13,68 @@
 
   /* Headings are VERY big, bold, and brash by default. */
   h2 {
-    --pico-font-size: 1.5rem;
+    --pico-font-size: 1.3rem;
   }
 
   h1, h2, h3, h4, h5, h6 {
     --pico-font-weight: 500;
   }
 
-  /* Ends up with way too much space from uncollapsed margins. */
-  .quick-select > section {
-    margin-bottom: 0;
-  }
-
-  /* Keep user choices apart. */
-  .user-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .user-list > button {
-    /* Pico makes them full-width by default? */
-    width: auto;
-
-    /* Less empty space. */
-    margin-bottom: 0;
-    padding: 0.15rem var(--pico-form-element-spacing-horizontal);
-
-    /* Truncate really long ones */
-    max-width: 15rem;
-    white-space: nowrap;
+  /* Create the custom selector list for predefined/recent identities. */
+  .saved-identity-list {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
     overflow: hidden;
+  }
+
+  .saved-identity-list > li {
+    list-style: none;
+    margin-bottom: 0;
+  }
+
+  .saved-identity-list > li + li {
+    border-top: 1px solid var(--pico-muted-border-color);
+  }
+
+  .saved-identity-button {
+    margin-bottom: 0;
+    border: 0;
+    border-radius: 0;
+    padding: 0.75rem 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+  }
+
+  .saved-identity-label {
+    overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  button.outline:is(:hover, :focus-visible) {
-    background-color: color-mix(in srgb, currentColor 8%, transparent);
+  .saved-identity-action {
+    color: var(--pico-primary);
+    white-space: nowrap;
+    font-size: 0.95rem;
   }
 
-  /* Separate predefined and recent user lists. */
-  .quick-select > section:has(+section) {
-    border-right: 1px solid var(--pico-muted-border-color);
+  .saved-identity-button:is(:hover, :focus-visible) {
+    background-color: color-mix(in srgb, var(--pico-primary) 6%, transparent);
+  }
+  .saved-identity-button:is(:hover, :focus-visible) .saved-identity-action {
+    text-decoration: underline;
+    text-shadow: 0.25px 0 currentColor;
+  }
+
+  /* Prevent the "Authorize" button from wrapping. */
+  .subject-form fieldset button {
+    flex: 0 0 auto;
   }
 
   /* Soften up the debug info. */
@@ -66,15 +87,103 @@
     color: var(--pico-muted-color);
     font-weight: 500;
   }
+
+  /* Pico has a trailing horizontal rule on all tables. */
+  .request-details tr:not(:has(+ tr)) :is(td, th) {
+    border-bottom: 0px !important;
+  }
+
+  /* Pico outline hover state is not easily noticeable. */
+  button.outline:is(:hover, :focus-visible) {
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+  }
 </style>
 <article>
     <header>
       <hgroup>
         <h1>Authorize Client</h1>
-        <p>Choose an identity to authorize for this client.</p>
-        <p><small><strong>Click a predefined or recent user to authorize immediately.</strong></small></p>
+        <p>Choose an identity to use.</p>
       </hgroup>
+    </header>
 
+    {% if predefined_users or recent_subjects %}
+    <div class="grid quick-select">
+      {% if predefined_users %}
+      <section>
+        <h2 id="heading-auth-predefined">Predefined users</h2>
+        <ul aria-labelledby="heading-auth-predefined" class="saved-identity-list">
+        {% for sub in predefined_users %}
+          <li>
+            <form method="post">
+              <button
+                class="saved-identity-button"
+                type="submit"
+                name="sub"
+                value="{{ sub }}"
+                aria-label="Authorize as {{ sub }}"
+              >
+                <span class="saved-identity-label" aria-hidden="true">{{ sub }}</span>
+                <span class="saved-identity-action" aria-hidden="true">Authorize &rsaquo;</span>
+              </button>
+            </form>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if recent_subjects %}
+      <section>
+        <h2 id="heading-auth-previous">Recent subjects</h2>
+        <ul aria-labelledby="heading-auth-previous" class="saved-identity-list">
+        {% for subject in recent_subjects %}
+          <li>
+            <form method="post">
+              <button
+                class="saved-identity-button"
+                type="submit"
+                name="sub"
+                value="{{ subject }}"
+                aria-label="Authorize as {{ subject }}"
+              >
+                <span class="saved-identity-label" aria-hidden="true">{{ subject }}</span>
+                <span class="saved-identity-action" aria-hidden="true">Authorize &rsaquo;</span>
+              </button>
+            </form>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <section class="page-section">
+      <h2>Use a custom subject</h2>
+      <div class="form-grid">
+        <form method="post" class="subject-form">
+          <fieldset>
+            <div role="group">
+              <input
+                id="subject-input"
+                type="text"
+                name="sub"
+                placeholder="Subject"
+                aria-label="Subject"
+                required
+                autofocus
+              />
+              <button type="submit" aria-label="Authorize">Authorize &rsaquo;</button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </section>
+
+    <hr />
+
+    <section aria-labelledby="heading-client-info">
+      <h2 id="heading-client-info">Client info</h2>
       <table class="request-details">
         <tbody>
           <tr>
@@ -99,65 +208,7 @@
           </tr>
         </tbody>
       </table>
-    </header>
-
-    <div class="grid quick-select">
-      {% if predefined_users %}
-      <section>
-        <h2 id="heading-auth-predefined">As a predefined user</h2>
-        <form method="post" aria-labelledby="heading-auth-predefined" class="user-list">
-        {% for sub in predefined_users %}
-          <button class="outline" type="submit" name="sub" value="{{ sub }}" title="{{ sub }}">
-            {{ sub }}
-          </button>
-        {% endfor %}
-        </form>
-      </section>
-      {% endif %}
-
-      {% if not only_predefined_users %}
-      <section>
-        <h2 id="heading-auth-previous">As a recent user</h2>
-        <form method="post" aria-labelledby="heading-auth-previous" class="user-list">
-        {% if recent_subjects %}
-        {% for subject in recent_subjects %}
-          <button class="outline secondary" type="submit" name="sub" value="{{ subject }}" title="{{ subject }}">
-            {{ subject }}
-          </button>
-        {% endfor %}
-        {% else %}
-          <span>{{ "&mdash;" | safe }}</span>
-        {% endif %}
-        </form>
-      </section>
-      {% endif %}
-    </div>
-
-    {% if not only_predefined_users %}
-    <hr />
-
-    <section class="page-section">
-      <h2>Or with a custom subject</h2>
-      <div class="form-grid">
-        <form method="post" class="subject-form">
-          <fieldset>
-            <div role="group">
-                <input
-                  id="subject-input"
-                  type="text"
-                  name="sub"
-                  placeholder="Subject"
-                  aria-label="Subject"
-                  required
-                  autofocus
-                />
-              <button type="submit">Authorize</button>
-            </div>
-          </fieldset>
-        </form>
-      </div>
     </section>
-    {% endif %}
 
     <footer class="page-footer">
       <form method="post" class="deny-form">
@@ -165,5 +216,45 @@
       </form>
     </footer>
 </article>
+
+<script type="module">
+  function setTitlesForEliptedSubjects() {
+    for (const button of document.querySelectorAll(".saved-identity-button")) {
+      const label = button.querySelector(".saved-identity-label");
+      const isTruncated = label.scrollWidth > label.clientWidth;
+
+      if (isTruncated) {
+        button.title = label.textContent?.trim() ?? "";
+      } else {
+        button.removeAttribute("title");
+      }
+    }
+  };
+
+  function registerResizeObserverOn(parentElement) {
+    if (!parentElement) {
+      return;
+    }
+
+    let resizeFrame = 0;
+
+    new ResizeObserver(() => {
+      if (resizeFrame) {
+        cancelAnimationFrame(resizeFrame);
+      }
+
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        setTitlesForEliptedSubjects();
+      });
+    }).observe(parentElement);
+  }
+
+  // Set for the FCP.
+  setTitlesForEliptedSubjects();
+
+  // Recalculate if the width of the quick select group changes.
+  registerResizeObserverOn(document.querySelector(".quick-select"));
+</script>
 
 {% endblock %}

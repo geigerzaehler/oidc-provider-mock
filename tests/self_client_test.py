@@ -1,3 +1,5 @@
+import re
+
 from faker import Faker
 from playwright.sync_api import Page, expect
 
@@ -12,7 +14,7 @@ def test_auth_success(oidc_server: str, page: Page):
     page.get_by_role("button", name="Start").click()
     expect(page.get_by_role("heading", level=1)).to_have_text("Authorize Client")
     page.get_by_label("Subject").fill(subject)
-    page.get_by_role("button", name="Authorize").click()
+    page.get_by_role("button", name=re.compile(r"^Authorize")).click()
     expect(page.locator("body")).to_contain_text(f"You’re logged in as {subject}")
 
 

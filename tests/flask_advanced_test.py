@@ -3,6 +3,7 @@
 [Flask-OIDC](https://flask-oidc.readthedocs.io/en/stable/).
 """
 
+import re
 from urllib.parse import quote
 
 import httpx
@@ -31,7 +32,7 @@ def test_refresh(relying_party: TestServer, page: Page, oidc_server: str):
 
         page.goto(relying_party.url("/login"))
         page.get_by_label("Subject").fill("alice@example.com")
-        page.get_by_role("button", name="Authorize").click()
+        page.get_by_role("button", name=re.compile(r"^Authorize")).click()
 
         expect(page.locator("body")).to_contain_text(
             "Welcome Alice (alice@example.com)"
@@ -55,7 +56,7 @@ def test_access_token_expired(relying_party: TestServer, oidc_server: str, page:
 
         page.goto(relying_party.url("/login"))
         page.get_by_label("Subject").fill("alice@example.com")
-        page.get_by_role("button", name="Authorize").click()
+        page.get_by_role("button", name=re.compile(r"^Authorize")).click()
 
         expect(page.locator("body")).to_contain_text(
             "Welcome Alice (alice@example.com)"
