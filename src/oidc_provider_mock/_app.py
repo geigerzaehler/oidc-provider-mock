@@ -453,12 +453,14 @@ def authorize() -> flask.typing.ResponseReturnValue:
     recent_subjects = [
         sub for sub in storage.get_recent_subjects() if sub not in predefined_users
     ]
+    scopes = flask.request.args.get("scope", "").split()
 
     if flask.request.method == "GET":
         return flask.render_template(
             "authorization_form.html",
             redirect_uri=redirect_uri,
             client_id=grant.client.id,
+            scopes=scopes,
             recent_subjects=recent_subjects,
             predefined_users=predefined_users,
         )
@@ -471,14 +473,10 @@ def authorize() -> flask.typing.ResponseReturnValue:
             )
 
         sub = flask.request.form.get("sub")
-        if sub is None:
-            return flask.render_template(
-                "authorization_form.html",
-                redirect_uri=redirect_uri,
-                client_id=grant.client.id,
-                recent_subjects=recent_subjects,
-                predefined_users=predefined_users,
-                sub_missing=True,
+        if not sub:
+            raise _AuthorizationValidationException(
+                authlib.oauth2.rfc6749.InvalidRequestError.error,
+                "Missing 'sub' form parameter",
             )
 
         user = storage.get_user(sub)
