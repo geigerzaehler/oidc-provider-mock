@@ -26,8 +26,6 @@
   </hgroup>
 
   <article>
-
-
     {% if predefined_users %}
       <section aria-labelledby="heading-auth-predefined">
 
@@ -35,7 +33,6 @@
         {{ identity_list(predefined_users) }}
       </section>
     {% endif %}
-
 
     <section>
       <h3>Custom user</h3>
@@ -59,14 +56,15 @@
         {{ identity_list(recent_subjects) }}
       </section>
     {% endif %}
+
     <hr>
+
     <form method="post">
       <button type="submit"
               name="action"
               value="deny"
               class="secondary"
               style="width: auto;
-                     margin-left: auto;
                      margin-bottom: 0">Deny access</button>
     </form>
   </article>
