@@ -5,12 +5,13 @@
     {% for subject in subjects %}
       <li>
         <form method="post">
-          <button class="outline authorize-button"
+          <button class="authorize-button"
                   type="submit"
                   name="sub"
                   aria-label="Authorize as {{ subject }}"
-                  value="{{ subject }}">
-            <span data-controller="overflow-title">{{ subject }}</span>
+                  value="{{ subject }}"
+                  title="{{ subject }}">
+            <span>{{ subject }}</span>
           </button>
         </form>
       </li>
@@ -47,7 +48,7 @@
                  aria-label="Subject"
                  required
                  autofocus />
-          <button type="submit" class="outline">Authorize</button>
+          <button type="submit">Authorize</button>
         </fieldset>
       </form>
     </section>
@@ -63,7 +64,7 @@
       <button type="submit"
               name="action"
               value="deny"
-              class="secondary outline"
+              class="secondary"
               style="width: auto;
                      margin-left: auto;
                      margin-bottom: 0">Deny access</button>
@@ -96,40 +97,6 @@
     </table>
   </article>
 
-  <script type="module">
-
-  document.querySelectorAll("[data-controller=overflow-title]").forEach((element) => registerResizeObserverOn(element))
-
-  function setTitlesForEllipsizedSubject(element) {
-      const button = element.closest("button")
-      const isTruncated = element.scrollWidth > element.clientWidth;
-
-      if (isTruncated) {
-        button.title = element.textContent?.trim() ?? "";
-      } else {
-        button.removeAttribute("title");
-      }
-  };
-
-  function registerResizeObserverOn(element) {
-    setTitlesForEllipsizedSubject(element);
-
-    let resizeFrame = 0;
-
-    new ResizeObserver(() => {
-      if (resizeFrame) {
-        cancelAnimationFrame(resizeFrame);
-      }
-
-      resizeFrame = requestAnimationFrame(() => {
-        resizeFrame = 0;
-        setTitlesForEllipsizedSubject(element);
-      });
-    }).observe(element);
-  }
-
-
-  </script>
   <style>
       :root {
           --pico-form-element-spacing-vertical: 0.5rem;
@@ -147,10 +114,20 @@
       }
 
       .authorize-button {
-          text-align: left;
+          display: flex;
+      }
+
+      .authorize-button>span {
           white-space: nowrap;
+          flex-shrink: 1;
           text-overflow: ellipsis;
           overflow: hidden;
+      }
+
+      .authorize-button::after {
+          margin-left: auto;
+          padding-left: 1em;
+          content: "⮞";
       }
 
       .saved-identity-list>li {
