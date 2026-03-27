@@ -1,8 +1,11 @@
 # Changes
 
-## Unreleased
+## v0.4.0 - 2026-03-27
 
+- Update authorization UI ([@Kenneth-Sills][])
 - Require Python >=3.12 and Pydantic >=2.3
+
+[@Kenneth-Sills]: https://github.com/Kenneth-Sills
 
 ## v0.3.4 - 2026-01-25
 
