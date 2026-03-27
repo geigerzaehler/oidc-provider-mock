@@ -1,59 +1,149 @@
 {% extends "_base.html" %}
+
+{% macro identity_list(subjects) %}
+  <ul class="saved-identity-list">
+    {% for subject in subjects %}
+      <li>
+        <form method="post">
+          <button class="authorize-button"
+                  type="submit"
+                  name="sub"
+                  aria-label="Authorize as {{ subject }}"
+                  value="{{ subject }}"
+                  title="{{ subject }}">
+            <span>{{ subject }}</span>
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
+
 {% block content %}
-<h1>Authorize Client</h1>
-<p>Client ID: <code>{{ client_id }}</code></p>
+  <hgroup>
+    <h1>Authorize Client</h1>
+    <p>Choose an identity to use.</p>
+  </hgroup>
 
-<style>
-  .form-grid {
-    display: grid;
-    grid-template:
-      "a a"
-      "b c" / 1fr 1fr;
-    column-gap: 1rem;
-  }
-</style>
-<div class="form-grid">
-  <form method="post" style="display: contents">
-    <div style="grid-area: a">
-      {% if sub_missing %}
-        <input
-          type="text"
-          name="sub"
-          placeholder="sub"
-          required
-          autofocus
-          aria-invalid="true"
-          aria-describedby="sub-missing"
-        />
-        <small id="sub-missing">The field is missing</small>
-      {% else %}
-        <input type="text" name="sub" placeholder="sub" required autofocus />
-      {% endif %}
-    </div>
-    <button type="submit">Authorize</button>
-  </form>
-  <form method="post">
-    <button type="submit" name="action" value="deny" class="contrast">Deny</button>
-  </form>
-</div>
-<p>You will be redirected to {{ redirect_uri }}</p>
+  <article>
+    {% if predefined_users %}
+      <section aria-labelledby="heading-auth-predefined">
 
-{% if predefined_users %}
-<h2 id="heading-auth-predefined">Authenticate predefined users</h2>
-<form method="post" aria-labelledby="heading-auth-predefined">
-{% for sub in predefined_users %}
-  <button class="outline" style="width: auto" type="submit" name="sub" value="{{ sub }}">{{ sub }}</button>
-{% endfor %}
-</form>
-{% endif %}
+        <h3 id="heading-auth-predefined">Predefined users</h3>
+        {{ identity_list(predefined_users) }}
+      </section>
+    {% endif %}
 
-{% if recent_subjects %}
-<h2 id="heading-auth-previous">Authenticate previous users</h2>
-<form method="post" aria-labelledby="heading-auth-previous">
-{% for subject in recent_subjects %}
-  <button class="outline secondary" style="width: auto" type="submit" name="sub" value="{{ subject }}">{{ subject }}</button>
-{% endfor %}
-</form>
-{% endif %}
+    <section>
+      <h3>Custom user</h3>
+      <form method="post">
+        <fieldset role="group">
+          <input id="subject-input"
+                 type="text"
+                 name="sub"
+                 placeholder="Subject"
+                 aria-label="Subject"
+                 required
+                 autofocus />
+          <button type="submit">Authorize</button>
+        </fieldset>
+      </form>
+    </section>
 
+    {% if recent_subjects %}
+      <section aria-labelledby="heading-auth-previous">
+        <h3 id="heading-auth-previous">Recent users</h3>
+        {{ identity_list(recent_subjects) }}
+      </section>
+    {% endif %}
+
+    <hr>
+
+    <form method="post">
+      <button type="submit"
+              name="action"
+              value="deny"
+              class="secondary"
+              style="width: auto;
+                     margin-bottom: 0">Deny access</button>
+    </form>
+  </article>
+
+  <article aria-labelledby="heading-client-info">
+    <h2 id="heading-client-info">Client info</h2>
+    <table class="request-details">
+      <tbody>
+        <tr>
+          <th scope="row">Client ID</th>
+          <td>
+            <code>{{ client_id }}</code>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Redirect URI</th>
+          <td>
+            <code>{{ redirect_uri }}</code>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Scopes</th>
+          <td>
+            {% for scope in scopes %}<code>{{ scope }}</code> {% endfor %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <style>
+      :root {
+          --pico-form-element-spacing-vertical: 0.5rem;
+          --pico-form-element-spacing-horizontal: 1rem;
+      }
+
+      .saved-identity-list {
+          padding: 0;
+      }
+
+      @media (min-width: 40rem) {
+          .saved-identity-list {
+              column-count: 2
+          }
+      }
+
+      .authorize-button {
+          display: flex;
+      }
+
+      .authorize-button>span {
+          white-space: nowrap;
+          flex-shrink: 1;
+          text-overflow: ellipsis;
+          overflow: hidden;
+      }
+
+      .authorize-button::after {
+          margin-left: auto;
+          padding-left: 1em;
+          content: "⮞";
+      }
+
+      .saved-identity-list>li {
+          list-style: none;
+      }
+
+      .request-details {
+          font-size: 0.9rem;
+      }
+
+      .request-details th {
+          text-align: right;
+          color: var(--pico-muted-color);
+          font-weight: 500;
+      }
+
+      .request-details tr:last-of-type * {
+          border-bottom: 0;
+      }
+  </style>
 {% endblock %}

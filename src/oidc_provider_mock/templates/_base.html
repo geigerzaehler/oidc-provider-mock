@@ -5,9 +5,10 @@
     href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
   />
   <style>
-    .container {
+    .container,
+    .container-fluid {
       max-width: 40rem;
     }
   </style>
-  <main class="container">{% block content %}{{ content }}{% endblock %}</main>
+  <main class="container-fluid">{% block content %}{{ content }}{% endblock %}</main>
 </html>

@@ -102,8 +102,8 @@ def test_auth_code_login_playwright(
     page.goto(live_server.url("/login"))
 
     # Authorize with the provider
-    page.get_by_placeholder("sub").fill("alice@example.com")
-    page.get_by_role("button", name="Authorize").click()
+    page.get_by_label("Subject").fill("alice@example.com")
+    page.get_by_role("button", name="Authorize", exact=True).click()
 
     # Verify that we’re logged in
     expect(page.locator("body")).to_contain_text("Welcome Alice (alice@example.com)")
@@ -119,7 +119,7 @@ def test_auth_denied_playwright(live_server: LiveServer, oidc_server: str, page:
     page.goto(live_server.url("/login"))
 
     # Deny authorization
-    page.get_by_role("button", name="Deny").click()
+    page.get_by_role("button", name="Deny access").click()
 
     # Verify that we’re shown an error message
     expect(page.get_by_role("heading")).to_have_text("Unauthorized")
