@@ -19,23 +19,21 @@ jobs:
     strategy:
       matrix:
         python:
-          - "3.10"
-          - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
         resolution: [highest]
         include:
-          - python: "3.10"
+          - python: "3.12"
             resolution: lowest
 
       fail-fast: true
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: astral-sh/setup-uv@e06108dd0aef18192324c70427afc47652e63a82 # v7
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
-          version: 0.10.10
+          version: 0.11.2
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         id: setup-python
         with:
@@ -51,7 +49,7 @@ jobs:
       - run: uv run ruff check
       - run: uv run pyright --warnings
       - run: uv run ./dev/build_readme.py && git diff --exit-code -- README.md
-      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: |
             ~/.cache/ms-playwright

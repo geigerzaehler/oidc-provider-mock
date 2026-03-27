@@ -4,9 +4,9 @@ import textwrap
 import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
-from typing import TypeVar, cast
+from typing import Never, cast, override
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
@@ -25,7 +25,6 @@ import werkzeug.local
 from authlib import jose
 from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
-from typing_extensions import Never, override
 
 from . import _client
 from ._storage import (
@@ -251,8 +250,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
                 user_id=request.user.sub,
                 # request.scope may actually be None
                 scope=scope,
-                expires_at=datetime.now(timezone.utc)
-                + timedelta(seconds=token["expires_in"]),
+                expires_at=datetime.now(UTC) + timedelta(seconds=token["expires_in"]),
             )
         )
 
@@ -266,7 +264,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
                     token=token["refresh_token"],
                     user_id=request.user.sub,
                     scope=scope,
-                    expires_at=datetime.now(timezone.utc)
+                    expires_at=datetime.now(UTC)
                     + timedelta(seconds=token["expires_in"]),
                     client_id=request.client.id,
                 )
@@ -684,10 +682,10 @@ blueprint.register_error_handler(
     _insecure_transport_error_handler,
 )
 
-_Model = TypeVar("_Model", bound=pydantic.BaseModel)
 
-
-def _validate_body(request: flask.Request, model: type[_Model]) -> _Model:
+def _validate_body[Model: pydantic.BaseModel](
+    request: flask.Request, model: type[Model]
+) -> Model:
     try:
         return model.model_validate(request.json, strict=True)
     except pydantic.ValidationError as error:
