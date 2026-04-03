@@ -187,6 +187,14 @@ authorization = cast(
 blueprint = flask.Blueprint("oidc-provider-mock", __name__)
 
 
+@blueprint.after_request
+def add_cors_headers(response: flask.Response) -> flask.Response:
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, OPTIONS"
+    return response
+
+
 @dataclass(kw_only=True, frozen=True)
 class Config:
     require_client_registration: bool = False
