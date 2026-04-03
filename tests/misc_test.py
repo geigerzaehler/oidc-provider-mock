@@ -3,11 +3,30 @@ from collections.abc import Callable
 from http import HTTPStatus
 
 import flask.testing
+import pytest
 
 import oidc_provider_mock
 import oidc_provider_mock._app
 
 from .conftest import use_provider_config
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/.well-known/openid-configuration",
+        "/jwks",
+        "/userinfo",
+    ],
+)
+def test_cors_headers(client: flask.testing.FlaskClient, path: str):
+    response = client.get(path)
+    assert response.headers.get("Access-Control-Allow-Origin") == "*"
+    assert response.headers.get("Access-Control-Allow-Headers") == "*, Authorization"
+    assert (
+        response.headers.get("Access-Control-Allow-Methods")
+        == "GET, POST, PUT, OPTIONS"
+    )
 
 
 def test_userinfo_unauthorized(client: flask.testing.FlaskClient):

@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Add CORS headers ([@tjarbo][])
+
 ## v0.4.0 - 2026-03-27
 
 - Update authorization UI ([@Kenneth-Sills][])
