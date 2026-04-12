@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.1 - 2026-04-12
 
 - Add CORS headers ([@tjarbo][])
 
