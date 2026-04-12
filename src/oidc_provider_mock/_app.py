@@ -11,7 +11,6 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
 import authlib.deprecate
-import authlib.integrations.flask_oauth2 as flask_oauth2
 import authlib.oauth2.rfc6749
 import authlib.oauth2.rfc6749.errors
 import authlib.oauth2.rfc6750
@@ -23,6 +22,7 @@ import werkzeug.debug
 import werkzeug.exceptions
 import werkzeug.local
 from authlib import jose
+from authlib.integrations import flask_oauth2
 from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
 

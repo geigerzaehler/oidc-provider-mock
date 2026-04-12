@@ -136,8 +136,7 @@ class OidcClient:
             )
 
         else:
-            # TODO: Dedicated error class
-            raise Exception(
+            raise RuntimeError(
                 "Authorization server does not advertise registration endpoint"
             )
 
