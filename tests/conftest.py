@@ -15,10 +15,10 @@ import werkzeug.serving
 from playwright.sync_api import Page
 
 typeguard.install_import_hook("oidc_provider_mock")
-import oidc_provider_mock  # noqa: E402
-import oidc_provider_mock._server  # noqa: E402
-from oidc_provider_mock._app import Config  # noqa: E402
-from oidc_provider_mock._storage import User  # noqa: E402
+import oidc_provider_mock
+import oidc_provider_mock._server
+from oidc_provider_mock._app import Config
+from oidc_provider_mock._storage import User
 
 
 @pytest.fixture

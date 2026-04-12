@@ -18,9 +18,7 @@ class ClientAllowAny:
         return str(type(self).__name__)
 
 
-type ClientAuthMethod = (
-    Literal["none"] | Literal["client_secret_basic"] | Literal["client_secret_post"]
-)
+type ClientAuthMethod = Literal["none", "client_secret_basic", "client_secret_post"]
 
 
 @dataclass(kw_only=True, frozen=True)
