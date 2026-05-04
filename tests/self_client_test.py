@@ -4,8 +4,7 @@ from playwright.sync_api import Page, expect
 faker = Faker()
 
 
-# @use_provider_config(require_client_registration=True)
-def test_auth_success(oidc_server: str, page: Page):
+def test_browser_login(oidc_server: str, page: Page):
     subject = faker.email()
 
     page.goto(f"{oidc_server}/oidc/login")

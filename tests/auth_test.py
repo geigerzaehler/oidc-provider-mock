@@ -1,27 +1,16 @@
-"""Tests authentication flow only using the POST requests to the authorization
-endpoint.
-"""
+"""Tests the authorization code flow via direct HTTP requests."""
 
 import re
-from datetime import timedelta
-from http import HTTPStatus
 from typing import Any
 
-import flask.testing
 import httpx
 import pytest
-from authlib.integrations.base_client import OAuthError
 from faker import Faker
-from freezegun import freeze_time
 
-from oidc_provider_mock._client_lib import (
-    AuthorizationError,
-    AuthorizationServerError,
-    OidcClient,
-)
+from oidc_provider_mock._client_lib import AuthorizationError, OidcClient
 from oidc_provider_mock._storage import User
 
-from .conftest import use_provider_config
+from .conftest import fake_client, use_provider_config
 
 faker = Faker()
 
@@ -54,7 +43,7 @@ def test_auth_success(oidc_server: str):
     assert userinfo["sub"] == subject
 
 
-def test_dynamic_claims(oidc_server: str):
+def test_user_endpoint_claims_in_tokens(oidc_server: str):
     """Authenticate with additional claims in ID token and user info"""
 
     subject = faker.email()
@@ -65,7 +54,7 @@ def test_dynamic_claims(oidc_server: str):
         json={"custom": "CLAIM"},
     ).raise_for_status()
 
-    client = _fake_client(issuer=oidc_server)
+    client = fake_client(issuer=oidc_server)
 
     response = httpx.post(
         client.authorization_url(state=state),
@@ -84,12 +73,12 @@ def test_dynamic_claims(oidc_server: str):
 @use_provider_config(
     user_claims=(User(sub="alice", claims={"custom": "CLAIM"}),),
 )
-def test_static_claims(oidc_server: str):
+def test_preconfigured_claims_in_tokens(oidc_server: str):
     """Authenticate with claims configured statically"""
 
     state = faker.password()
 
-    client = _fake_client(issuer=oidc_server)
+    client = fake_client(issuer=oidc_server)
 
     response = httpx.post(
         client.authorization_url(state=state),
@@ -124,7 +113,7 @@ def test_include_all_claims(oidc_server: str):
 
     httpx.put(f"{oidc_server}/users/{subject}", json=claims).raise_for_status()
 
-    client = _fake_client(
+    client = fake_client(
         issuer=oidc_server,
         scope="openid profile email address phone",
     )
@@ -155,7 +144,7 @@ def test_include_all_claims(oidc_server: str):
 def test_auth_denied(oidc_server: str):
     state = faker.password()
 
-    client = _fake_client(oidc_server)
+    client = fake_client(oidc_server)
 
     response = httpx.post(
         client.authorization_url(state=faker.password()),
@@ -166,92 +155,11 @@ def test_auth_denied(oidc_server: str):
         client.fetch_token(response.headers["location"], state=state)
 
 
-@use_provider_config(require_client_registration=True)
-def test_client_not_registered(oidc_server: str):
-    state = faker.password()
-
-    client = _fake_client(oidc_server)
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-
-    assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert "Error: invalid_client" in response.text
-    assert "The client does not exist on this server" in response.text
-
-
-def test_wrong_client_secret(oidc_server: str):
-    state = faker.password()
-    redirect_uri = faker.uri(schemes=["https"])
-
-    client = OidcClient.register(oidc_server, redirect_uri=redirect_uri)
-
-    # Create a second client with the same ID but different secret
-    client = OidcClient(
-        issuer=oidc_server,
-        id=client.id,
-        secret="foobar",
-        redirect_uri=redirect_uri,
-    )
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-
-    with pytest.raises(OAuthError, match="invalid_client: "):
-        client.fetch_token(response.headers["location"], state=state)
-
-
-@pytest.mark.parametrize(
-    "auth_method",
-    [
-        "client_secret_basic",
-        "client_secret_post",
-    ],
-)
-def test_client_auth_methods(oidc_server: str, auth_method: str):
-    subject = faker.email()
-    state = faker.password()
-
-    client = _fake_client(oidc_server, auth_method=auth_method)
-    auth_url = client.authorization_url(state=state)
-    response = httpx.post(auth_url, data={"sub": subject})
-
-    token_data = client.fetch_token(response.headers["location"], state)
-    assert token_data.claims["sub"] == subject
-
-    userinfo = client.fetch_userinfo(token=token_data.access_token)
-    assert userinfo["sub"] == subject
-
-
-def test_auth_methods_not_supported_for_client(oidc_server: str):
-    state = faker.password()
-
-    redirect_uri = faker.uri()
-    client = OidcClient.register(
-        oidc_server, redirect_uri=redirect_uri, auth_method="client_secret_basic"
-    )
-    client = OidcClient(
-        id=client.id,
-        redirect_uri=redirect_uri,
-        auth_method="client_secret_post",
-        secret=client.secret,
-        issuer=oidc_server,
-    )
-    auth_url = client.authorization_url(state=state)
-    response = httpx.post(auth_url, data={"sub": faker.email()})
-    with pytest.raises(OAuthError, match="invalid_client: "):
-        client.fetch_token(response.headers["location"], state=state)
-
-
 @use_provider_config(require_nonce=True)
 def test_nonce_required_error(oidc_server: str):
     state = faker.password()
 
-    client = _fake_client(oidc_server)
+    client = fake_client(oidc_server)
     auth_url = client.authorization_url(state=state)
     token_data = httpx.post(auth_url, data={"sub": faker.email()})
     with pytest.raises(
@@ -267,174 +175,3 @@ def test_nonce_required_error(oidc_server: str):
     token_data = httpx.post(auth_url, data={"sub": faker.email()})
     token_data = client.fetch_token(token_data.headers["location"], state=state)
     assert token_data.claims["nonce"] == nonce
-
-
-def test_no_openid_scope(oidc_server: str):
-    state = faker.password()
-
-    client = _fake_client(oidc_server, scope="foo bar")
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-
-    with pytest.raises(
-        AuthorizationServerError, match="missing id_token from token endpoint response"
-    ):
-        client.fetch_token(response.headers["location"], state)
-
-
-def test_no_email_scope(oidc_server: str):
-    state = faker.password()
-
-    client = OidcClient.register(
-        oidc_server,
-        scope="openid",
-        redirect_uri=faker.uri(schemes=["https"]),
-    )
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-
-    token_data = client.fetch_token(response.headers["location"], state)
-    assert token_data.scope == "openid"
-    assert "email" not in token_data.claims
-
-
-def test_reduced_authorization_scope(oidc_server: str):
-    state = faker.password()
-
-    client = OidcClient.register(
-        oidc_server,
-        scope="openid other",
-        redirect_uri=faker.uri(schemes=["https"]),
-    )
-
-    response = httpx.post(
-        client.authorization_url(state=state, scope="openid other notallowed"),
-        data={"sub": faker.email()},
-    )
-
-    token_data = client.fetch_token(response.headers["location"], state)
-    assert token_data.scope == "openid other"
-
-
-@use_provider_config(access_token_max_age=timedelta(minutes=111))
-def test_token_expiry(oidc_server: str):
-    state = faker.password()
-
-    client = OidcClient.register(oidc_server, redirect_uri=faker.uri(schemes=["https"]))
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-    assert response.status_code == 302
-    token_data = client.fetch_token(response.headers["location"], state=state)
-
-    assert token_data.claims["exp"] - token_data.claims["iat"] == 111 * 60  # type: ignore
-    assert token_data.expires_in == 111 * 60
-
-
-@use_provider_config(issue_refresh_token=False)
-def test_no_refresh_token(oidc_server: str):
-    state = faker.password()
-
-    client = _fake_client(oidc_server)
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-    assert response.status_code == 302
-    token_data = client.fetch_token(response.headers["location"], state=state)
-
-    assert token_data.refresh_token is None
-
-
-def test_refresh_token(oidc_server: str):
-    state = faker.password()
-
-    client = _fake_client(oidc_server)
-
-    response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": faker.email()},
-    )
-
-    token_data = client.fetch_token(response.headers["location"], state=state)
-
-    assert token_data.refresh_token is not None
-    refresh_token_data = client.refresh_token(refresh_token=token_data.refresh_token)
-
-    # Using a refresh token revokes the old access token
-    with pytest.raises(httpx.HTTPStatusError) as e:
-        client.fetch_userinfo(token=token_data.access_token)
-    assert e.value.response.json()["error"] == "access_denied"
-
-    client.fetch_userinfo(token=refresh_token_data.access_token)
-
-
-def test_revoke_tokens(oidc_server: str):
-    state = faker.password()
-    sub = faker.email()
-    client = _fake_client(oidc_server)
-
-    auth_response = httpx.post(
-        client.authorization_url(state=state),
-        data={"sub": sub},
-    )
-    token_data = client.fetch_token(auth_response.headers["location"], state=state)
-
-    httpx.post(f"{oidc_server}users/{sub}/revoke-tokens").raise_for_status()
-
-    with pytest.raises(httpx.HTTPStatusError) as e:
-        client.fetch_userinfo(token=token_data.access_token)
-    assert e.value.response.json()["error"] == "access_denied"
-
-    assert token_data.refresh_token
-    with pytest.raises(OAuthError, match="invalid_grant: invalid refresh token"):
-        client.refresh_token(faker.password())
-
-
-def test_isssue_invalid_grant_type(client: flask.testing.FlaskClient):
-    response = client.post("/oauth2/token", data={"grant_type": "foo"})
-    assert response.json == {"error": "unsupported_grant_type"}
-
-
-@use_provider_config(access_token_max_age=timedelta(minutes=111))
-def test_userinfo_expired_token(oidc_server: str):
-    with freeze_time(faker.date(), tick=True) as frozen_datetime:
-        state = faker.password()
-        client = _fake_client(oidc_server)
-        token_data = httpx.post(
-            client.authorization_url(state=state),
-            data={"sub": faker.email()},
-        )
-
-        token_data = client.fetch_token(token_data.headers["location"], state=state)
-        frozen_datetime.tick(timedelta(minutes=112))
-        with pytest.raises(httpx.HTTPStatusError) as e:
-            client.fetch_userinfo(token=token_data.access_token)
-
-        response = e.value.response.json()
-        assert response["error"] == "invalid_token"
-
-
-def _fake_client(
-    issuer: str,
-    *,
-    scope: str = OidcClient.DEFAULT_SCOPE,
-    auth_method: str = OidcClient.DEFAULT_AUTH_METHOD,
-):
-    return OidcClient(
-        id=str(faker.uuid4()),
-        secret=faker.password(),
-        redirect_uri=faker.uri(schemes=["https"]),
-        issuer=issuer,
-        scope=scope,
-        auth_method=auth_method,
-    )
