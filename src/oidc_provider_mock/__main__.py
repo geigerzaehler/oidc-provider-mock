@@ -87,7 +87,7 @@ _default_config = Config
 )
 @click.option(
     "--user-claims-file",
-    help="A YAML file with a list of predefined user claims objects.",
+    help="YAML or JSON file containing a list of predefined user claims",
     type=click.File(),
 )
 def run(
