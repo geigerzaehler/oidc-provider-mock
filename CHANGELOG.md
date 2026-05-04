@@ -1,8 +1,11 @@
 # Changes
 
-## Unreleased
+## v0.4.2 - 2026-05-04
 
-- Added `--user-claims-file` to CLI which allows loading user claims as a YAML/JSON file.
+- Added `--user-claims-file` option which allows loading user claims as a YAML/JSON file ([@bmispelon][], [@ghbm-itk][]).
+
+[@bmispelon]: https://github.com/bmispelon
+[@ghbm-tik]: https://github.com/ghbm-itk
 
 ## v0.4.1 - 2026-04-12
 
