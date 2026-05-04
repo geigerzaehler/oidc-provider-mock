@@ -1,15 +1,14 @@
 from collections import deque
 from collections.abc import Collection, Iterable, Sequence
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import ClassVar, Literal, TypeAlias, cast
+from datetime import UTC, datetime
+from typing import ClassVar, Literal, cast, override
 
 import authlib.oauth2.rfc6749
 import authlib.oidc.core
 import flask
 import werkzeug.local
 from authlib import jose
-from typing_extensions import override
 
 
 class ClientAllowAny:
@@ -19,9 +18,7 @@ class ClientAllowAny:
         return str(type(self).__name__)
 
 
-ClientAuthMethod: TypeAlias = (
-    Literal["none"] | Literal["client_secret_basic"] | Literal["client_secret_post"]
-)
+type ClientAuthMethod = Literal["none", "client_secret_basic", "client_secret_post"]
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -156,7 +153,7 @@ class AccessToken(authlib.oauth2.rfc6749.TokenMixin):
 
     @override
     def is_expired(self):
-        return datetime.now(timezone.utc) >= self.expires_at
+        return datetime.now(UTC) >= self.expires_at
 
     @override
     def is_revoked(self):

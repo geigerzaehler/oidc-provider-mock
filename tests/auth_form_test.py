@@ -91,7 +91,36 @@ def test_missing_sub_parameter(client: flask.testing.FlaskClient):
         "response_type": "code",
     })
     response = client.post(f"/oauth2/authorize?{query}")
-    assert "The field is missing" in response.text
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert "Error: invalid_request" in response.text
+    assert "Missing &#39;sub&#39; form parameter" in response.text
+
+
+def test_blank_sub_parameter(client: flask.testing.FlaskClient):
+    query = urlencode({
+        "client_id": str(faker.uuid4()),
+        "redirect_uri": faker.uri(schemes=["https"]),
+        "response_type": "code",
+    })
+    response = client.post(f"/oauth2/authorize?{query}", data={"sub": ""})
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert "Error: invalid_request" in response.text
+    assert "Missing &#39;sub&#39; form parameter" in response.text
+
+
+def test_authorization_form_shows_manual_subject_input(oidc_server: str, page: Page):
+    """The manual subject input is always available."""
+    OidcClient(
+        id=str(faker.uuid4()),
+        secret=faker.password(),
+        redirect_uri=faker.uri(schemes=["https"]),
+        issuer=oidc_server,
+    )
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+
+    expect(page.get_by_label("Subject")).to_be_visible()
+    expect(page.get_by_role("button", name="Deny access")).to_be_visible()
 
 
 def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
@@ -116,19 +145,38 @@ def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
 
-    expect(
-        page.get_by_role("heading", name="Authenticate previous users")
-    ).to_be_visible()
+    expect(page.get_by_role("heading", name="Recent users")).to_be_visible()
 
-    auth_buttons = page.get_by_role(
-        "form", name="Authenticate previous users"
-    ).get_by_role("button")
+    auth_buttons = (
+        page
+        .locator("section")
+        .filter(has=page.get_by_role("heading", name="Recent users"))
+        .get_by_role("button")
+    )
 
-    expect(auth_buttons.nth(0)).to_have_accessible_name(subject0)
-    expect(auth_buttons.nth(1)).to_have_accessible_name(subject1)
+    expect(auth_buttons.nth(0)).to_have_accessible_name(f"Authorize as {subject0}")
+    expect(auth_buttons.nth(1)).to_have_accessible_name(f"Authorize as {subject1}")
 
     auth_buttons.nth(0).click()
     expect(page.locator("body")).to_contain_text(f"You’re logged in as {subject0}")
+
+
+def test_recent_users_section_is_hidden_when_no_recent_users(
+    oidc_server: str, page: Page
+):
+    """The recent users section is hidden until recent users exist."""
+
+    OidcClient(
+        id=str(faker.uuid4()),
+        secret=faker.password(),
+        redirect_uri=faker.uri(schemes=["https"]),
+        issuer=oidc_server,
+    )
+
+    page.goto(f"{oidc_server}/oidc/login")
+    page.get_by_role("button", name="Start").click()
+
+    expect(page.get_by_role("heading", name="Recent users")).not_to_be_attached()
 
 
 @use_provider_config(
@@ -150,22 +198,21 @@ def test_predefined_users_button(oidc_server: str, page: Page):
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
 
-    expect(
-        page.get_by_role("heading", name="Authenticate predefined users")
-    ).to_be_visible()
+    expect(page.get_by_role("heading", name="Predefined users")).to_be_visible()
 
-    predefined_buttons = page.get_by_role(
-        "form", name="Authenticate predefined users"
-    ).get_by_role("button")
+    predefined_buttons = (
+        page
+        .locator("section")
+        .filter(has=page.get_by_role("heading", name="Predefined users"))
+        .get_by_role("button")
+    )
 
-    expect(predefined_buttons.nth(0)).to_have_accessible_name("alice")
-    expect(predefined_buttons.nth(1)).to_have_accessible_name("bob")
+    expect(predefined_buttons.nth(0)).to_have_accessible_name("Authorize as alice")
+    expect(predefined_buttons.nth(1)).to_have_accessible_name("Authorize as bob")
 
     predefined_buttons.nth(0).click()
     expect(page.locator("body")).to_contain_text("You’re logged in as alice")
 
     page.goto(f"{oidc_server}/oidc/login")
     page.get_by_role("button", name="Start").click()
-    expect(
-        page.get_by_role("heading", name="Authenticate previous users")
-    ).not_to_be_visible()
+    expect(page.get_by_role("heading", name="Recent users")).not_to_be_attached()

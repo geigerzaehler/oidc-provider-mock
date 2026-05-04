@@ -1,13 +1,31 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
+  "extends": ["config:best-practices", "group:allNonMajor"],
   "timezone": "Europe/Berlin",
-  "schedule": ["* 0-6 * * *"],
+  "schedule": ["* 0-8 * * *"],
   "semanticCommits": "disabled",
   "automerge": true,
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
-    "schedule": ["* 0-6 12 * *"]
-  }
+    "schedule": ["* 0-8 12 * *"]
+  },
+  "packageRules": [
+    {
+      "description": "Update dev deps and digests only on schedule",
+      "matchDepTypes": ["dependency-groups", "digest", "pinDigest"],
+      "schedule": ["* 0-8 11 * *"]
+    },
+    {
+      "description": "Don't group ruff and pyright, they brake easily",
+      "matchPackageNames": ["ruff", "pyright"],
+      "groupName": null
+    },
+    {
+      "description": "Don't group minor updates for 0.x packages",
+      "matchCurrentVersion": "/^v?0\\./",
+      "matchUpdateTypes": ["minor"],
+      "groupName": null
+    }
+  ]
 }

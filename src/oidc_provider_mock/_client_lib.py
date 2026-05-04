@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qsl, urljoin, urlparse
 
 import httpx
@@ -136,8 +136,7 @@ class OidcClient:
             )
 
         else:
-            # TODO: Dedicated error class
-            raise Exception(
+            raise RuntimeError(
                 "Authorization server does not advertise registration endpoint"
             )
 
@@ -312,15 +311,15 @@ class OidcClient:
         # TODO: 7. Implement alg check
         # TODO: 8. Client secret check of HMAC
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         # 9. exp
-        exp = datetime.fromtimestamp(claims.exp, tz=timezone.utc)
+        exp = datetime.fromtimestamp(claims.exp, tz=UTC)
         if now > exp + timedelta(seconds=5):
             raise ValueError("exp")
 
         # 10. iat
-        iat = datetime.fromtimestamp(claims.iat, tz=timezone.utc)
+        iat = datetime.fromtimestamp(claims.iat, tz=UTC)
         if now < iat - timedelta(hours=1):
             raise ValueError("iat")
 
