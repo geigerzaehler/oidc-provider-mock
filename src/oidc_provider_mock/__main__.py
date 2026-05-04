@@ -150,7 +150,7 @@ def run(
 
 def _decode_claims_dict(claims_dict: object) -> User:
     if not isinstance(claims_dict, dict):
-        raise click.ClickException("user claims must be a JSON or YAML object.")
+        raise click.ClickException("user claims must be an object.")
 
     claims_dict = cast("dict[str, object]", claims_dict)
 
