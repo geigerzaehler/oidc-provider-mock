@@ -12,12 +12,14 @@ import flask
 import pytest
 import typeguard
 import werkzeug.serving
+from faker import Faker
 from playwright.sync_api import Page
 
 typeguard.install_import_hook("oidc_provider_mock")
 import oidc_provider_mock
 import oidc_provider_mock._server
 from oidc_provider_mock._app import Config
+from oidc_provider_mock._client_lib import OidcClient
 from oidc_provider_mock._storage import User
 
 
@@ -96,3 +98,22 @@ def run_server(app: flask.Flask) -> Iterator[TestServer]:
     with oidc_provider_mock._server._threaded_server(app, poll_interval=0.01) as server:
         app.config["SERVER_NAME"] = f"localhost:{server.server_port}"
         yield TestServer(app, server)
+
+
+_faker = Faker()
+
+
+def fake_client(
+    issuer: str,
+    *,
+    scope: str = OidcClient.DEFAULT_SCOPE,
+    auth_method: str = OidcClient.DEFAULT_AUTH_METHOD,
+) -> OidcClient:
+    return OidcClient(
+        id=str(_faker.uuid4()),
+        secret=_faker.password(),
+        redirect_uri=_faker.uri(schemes=["https"]),
+        issuer=issuer,
+        scope=scope,
+        auth_method=auth_method,
+    )

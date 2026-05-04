@@ -21,7 +21,9 @@ def relying_party(oidc_server: str):
         yield server
 
 
-def test_refresh(relying_party: TestServer, page: Page, oidc_server: str):
+def test_refresh_token_extends_session(
+    relying_party: TestServer, page: Page, oidc_server: str
+):
     with freeze_time("1 Jan 2020", tick=True) as frozen_datetime:
         response = httpx.put(
             f"{oidc_server}/users/{quote('alice@example.com')}",

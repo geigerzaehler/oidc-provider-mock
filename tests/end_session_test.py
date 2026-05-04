@@ -9,7 +9,7 @@ faker = Faker()
 
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
-def test_id_token_hint(client: flask.testing.FlaskClient, method: str):
+def test_warns_without_id_token_hint(client: flask.testing.FlaskClient, method: str):
     response = client.open("/oauth2/end_session", method=method)
     assert response.status_code == 200
     assert "Recommended parameter <code>id_token_hint</code> not set" in response.text
@@ -26,7 +26,7 @@ def test_id_token_hint(client: flask.testing.FlaskClient, method: str):
 
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
-def test_post_logout_redirect_uri(client: flask.testing.FlaskClient, method: str):
+def test_shows_post_logout_redirect(client: flask.testing.FlaskClient, method: str):
     response = client.open("/oauth2/end_session", method=method)
     assert response.status_code == 200
     assert "You will be redirected to " not in response.text
