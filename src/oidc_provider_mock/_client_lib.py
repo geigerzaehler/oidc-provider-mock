@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Self
 from urllib.parse import parse_qsl, urljoin, urlparse
 
 import httpx
@@ -147,6 +148,15 @@ class OidcClient:
             issuer=issuer,
             secret=content["client_secret"],
         )
+
+    def close(self) -> None:
+        self._authlib_client.close()  # type: ignore
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
 
     @property
     def secret(self) -> str:

@@ -9,6 +9,7 @@ from typing import TextIO, cast
 
 import click
 import uvicorn
+import yaml
 
 from . import app
 from ._app import Config
