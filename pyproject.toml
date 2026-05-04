@@ -37,6 +37,7 @@ dependencies = [
   "htpy>=25.2.0",
   "joserfc>=1.0.3",
   "pydantic>=2.3",
+  "pyyaml>=6.0.1",
   "typing-extensions>=4.0",
   "uvicorn>=0.30.0",
 ]
@@ -71,6 +72,7 @@ dev = [
   "typeguard~=4.4",
   "freezegun~=1.5",
   "ipython~=9.10",
+  "inline-snapshot~=0.32.7"
 ]
 
 
@@ -103,6 +105,9 @@ typeguard-forward-ref-policy = "WARN"
 typeguard-collection-check-strategy = "ALL_ITEMS"
 # pytest-flask
 live_server_scope = "function"
+
+[tool.inline-snapshot]
+format-command = "ruff format --stdin-filename {filename} -"
 
 [tool.ruff.format]
 preview = true

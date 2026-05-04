@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Added `--user-claims-file` to CLI which allows loading user claims as a YAML/JSON file.
+
 ## v0.4.1 - 2026-04-12
 
 - Add CORS headers ([@tjarbo][])

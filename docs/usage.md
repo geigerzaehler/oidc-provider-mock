@@ -118,6 +118,21 @@ oidc-provider-mock \
     --user-claims '{"sub": "bob", "email": "bob@example.com", "name": "Bob"}'
 ```
 
+For larger sets of users, use `--user-claims-file` with a YAML or JSON file containing a list of user claims:
+
+```yaml
+- sub: alice
+  email: alice@example.com
+  name: Alice
+- sub: bob
+  email: bob@example.com
+  name: Bob
+```
+
+```bash
+oidc-provider-mock --user-claims-file users.yaml
+```
+
 ### Dynamic user configuration
 
 Additional claims can be added to a user identified by their `sub` value through
