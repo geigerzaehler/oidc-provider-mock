@@ -72,6 +72,7 @@ dev = [
   "typeguard~=4.4",
   "freezegun~=1.5",
   "ipython~=9.10",
+  "inline-snapshot~=0.32.7"
 ]
 
 
@@ -104,6 +105,9 @@ typeguard-forward-ref-policy = "WARN"
 typeguard-collection-check-strategy = "ALL_ITEMS"
 # pytest-flask
 live_server_scope = "function"
+
+[tool.inline-snapshot]
+format-command = "ruff format --stdin-filename {filename} -"
 
 [tool.ruff.format]
 preview = true

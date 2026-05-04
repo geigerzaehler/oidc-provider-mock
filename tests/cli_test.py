@@ -9,10 +9,46 @@ from pathlib import Path
 import httpx
 import yaml
 from faker import Faker
+from inline_snapshot import snapshot
 
 from .conftest import fake_client
 
 faker = Faker()
+
+
+def test_cli_help():
+    result = subprocess.run(
+        ["oidc-provider-mock", "--help"], capture_output=True, text=True, check=True
+    )
+    assert result.returncode == 0
+    assert result.stdout == snapshot("""\
+Usage: oidc-provider-mock [OPTIONS]
+
+  Start an OpenID Connect Provider for testing
+
+Options:
+  -p, --port INTEGER              Port the server listens on  [default: 9400]
+  -H, --host TEXT                 IP address to bind the server to  [default:
+                                  127.0.0.1]
+  -r, --require-registration BOOLEAN
+                                  Require clients to register before they can
+                                  request authentication  [default: False]
+  -n, --require-nonce BOOLEAN     Require clients to include a nonce in the
+                                  authorization request to prevent replay
+                                  attacks  [default: False]
+  -f, --no-refresh-token BOOLEAN  Do not issue an refresh token  [default:
+                                  False]
+  -e, --token-max-age INTEGER     Max age of access and ID tokens in seconds
+                                  until they expire
+  --user TEXT                     Predefined user subject (can be specified
+                                  multiple times)
+  --user-claims TEXT              Predefined user with claims as JSON (must
+                                  include "sub" property, can be specified
+                                  multiple times)
+  --user-claims-file FILENAME     YAML or JSON file containing a list of
+                                  predefined user claims
+  -h, --help                      Show this message and exit.
+""")
 
 
 def test_cli_user_claims_file(tmp_path: Path):

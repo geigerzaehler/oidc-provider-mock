@@ -90,6 +90,7 @@ _default_config = Config
     "--user-claims-file",
     help="YAML or JSON file containing a list of predefined user claims",
     type=click.File(),
+    default=None,
 )
 def run(
     port: int,
@@ -101,7 +102,7 @@ def run(
     token_max_age: int,
     users: tuple[str, ...],
     user_claims_json: tuple[str, ...],
-    user_claims_file: TextIO,
+    user_claims_file: TextIO | None,
 ):
     """Start an OpenID Connect Provider for testing"""
 
