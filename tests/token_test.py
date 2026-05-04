@@ -87,9 +87,9 @@ def test_revoke_tokens(oidc_server: str):
         client.fetch_userinfo(token=token_data.access_token)
     assert e.value.response.json()["error"] == "access_denied"
 
-    assert token_data.refresh_token
+    assert token_data.refresh_token is not None
     with pytest.raises(OAuthError, match="invalid_grant: invalid refresh token"):
-        client.refresh_token(faker.password())
+        client.refresh_token(token_data.refresh_token)
 
 
 def test_unsupported_grant_type(client: flask.testing.FlaskClient):
