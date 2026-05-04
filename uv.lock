@@ -831,7 +831,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.26" },
     { name = "joserfc", specifier = ">=1.0.3" },
     { name = "pydantic", specifier = ">=2.3" },
-    { name = "pyyaml", specifier = ">=6" },
+    { name = "pyyaml", specifier = ">=6.0.1" },
     { name = "typing-extensions", specifier = ">=4.0" },
     { name = "uvicorn", specifier = ">=0.30.0" },
 ]
