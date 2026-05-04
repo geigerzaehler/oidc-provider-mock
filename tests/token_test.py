@@ -102,12 +102,12 @@ def test_userinfo_expired_token(oidc_server: str):
     with freeze_time(faker.date(), tick=True) as frozen_datetime:
         state = faker.password()
         client = fake_client(oidc_server)
-        token_data = httpx.post(
+        auth_response = httpx.post(
             client.authorization_url(state=state),
             data={"sub": faker.email()},
         )
 
-        token_data = client.fetch_token(token_data.headers["location"], state=state)
+        token_data = client.fetch_token(auth_response.headers["location"], state=state)
         frozen_datetime.tick(timedelta(minutes=112))
         with pytest.raises(httpx.HTTPStatusError) as e:
             client.fetch_userinfo(token=token_data.access_token)
