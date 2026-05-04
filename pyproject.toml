@@ -37,7 +37,7 @@ dependencies = [
   "htpy>=25.2.0",
   "joserfc>=1.0.3",
   "pydantic>=2.3",
-  "pyyaml>=6",
+  "pyyaml>=6.0.1",
   "typing-extensions>=4.0",
   "uvicorn>=0.30.0",
 ]
