@@ -51,6 +51,24 @@ Options:
 """)
 
 
+def test_cli_user_claims_file_missing_sub(tmp_path: Path):
+    claims_file = tmp_path / "users.yaml"
+    claims_file.write_text(yaml.dump([{"email": "alice@example.com"}]))
+
+    result = subprocess.run(
+        ["oidc-provider-mock", "--user-claims-file", str(claims_file)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    stderr = result.stderr.replace(str(claims_file), "<file>")
+    assert (
+        stderr
+        == 'Error: --user-claims-file: user claims must include a "sub" property\n'
+    )
+
+
 def test_cli_user_claims_file(tmp_path: Path):
     claims_file = tmp_path / "users.yaml"
     claims_file.write_text(yaml.dump([{"sub": "alice", "email": "alice@example.com"}]))

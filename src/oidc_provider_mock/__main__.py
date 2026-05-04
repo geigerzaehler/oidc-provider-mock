@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import traceback
+from collections.abc import Iterator
 from datetime import timedelta
 from typing import TextIO, cast
 
@@ -119,22 +120,7 @@ def run(
             raise click.ClickException(f"Invalid JSON in --user-claims: {e}") from e
 
     if user_claims_file:
-        try:
-            user_claims_file_list: list[dict[str, object] | None] | None = (
-                yaml.safe_load(user_claims_file)
-            )
-        except yaml.YAMLError as e:
-            raise click.ClickException(
-                f"Invalid YAML in --user-claims-file: {e}"
-            ) from e
-
-        if not isinstance(user_claims_file_list, list):
-            raise click.ClickException(
-                "--user-claims-file must contain a list at top level."
-            )
-
-        for claims_dict in user_claims_file_list:
-            user_claims_list.append(_decode_claims_dict(claims_dict))
+        user_claims_list.extend(_load_claims_file(user_claims_file))
 
     os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
     handler = logging.StreamHandler(sys.stderr)
@@ -174,6 +160,26 @@ def _decode_claims_dict(claims_dict: object) -> User:
 
     claims = {k: v for k, v in claims_dict.items() if k != "sub"}
     return User(sub=sub, claims=claims)
+
+
+def _load_claims_file(file: TextIO) -> Iterator[User]:
+    try:
+        data: object = yaml.safe_load(file)
+    except yaml.YAMLError as e:
+        raise click.ClickException(f"Invalid YAML in --user-claims-file: {e}") from e
+
+    if not isinstance(data, list):
+        raise click.ClickException(
+            "--user-claims-file must contain a list at top level."
+        )
+
+    for item in data:  # pyright: ignore[reportUnknownVariableType]
+        try:
+            yield _decode_claims_dict(item)  # pyright: ignore[reportUnknownArgumentType]
+        except click.ClickException as e:
+            raise click.ClickException(
+                f"--user-claims-file: {e.format_message()}"
+            ) from e
 
 
 _LOG_RECORD_ATTRIBUTES = (
