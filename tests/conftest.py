@@ -111,7 +111,7 @@ def fake_client(
 ) -> OidcClient:
     return OidcClient(
         id=str(_faker.uuid4()),
-        secret=_faker.password(),
+        secret=None if auth_method == "none" else _faker.password(),
         redirect_uri=_faker.uri(schemes=["https"]),
         issuer=issuer,
         scope=scope,

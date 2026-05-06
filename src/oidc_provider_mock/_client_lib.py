@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Self
+from typing import Literal, Self
 from urllib.parse import parse_qsl, urljoin, urlparse
 
 import httpx
@@ -64,7 +64,7 @@ class OidcClient:
         *,
         id: str,
         redirect_uri: str,
-        secret: str,
+        secret: str | None = None,
         issuer: str,
         auth_method: str = DEFAULT_AUTH_METHOD,
         scope: str = DEFAULT_SCOPE,
@@ -114,7 +114,9 @@ class OidcClient:
         issuer: str,
         redirect_uri: str,
         scope: str = DEFAULT_SCOPE,
-        auth_method: str = "client_secret_basic",
+        auth_method: Literal[
+            "client_secret_basic", "client_secret_post", "none"
+        ] = "client_secret_basic",
     ):
         """Register a client with the OpenID provider and instantiate it."""
 
@@ -141,12 +143,22 @@ class OidcClient:
                 "Authorization server does not advertise registration endpoint"
             )
 
+        if auth_method == "none":
+            secret = None
+        else:
+            secret = content.get("client_secret")
+            if secret is None:
+                raise RuntimeError(
+                    "Registration reponse did not contain `client_secret`"
+                )
+
         return cls(
             id=content["client_id"],
             redirect_uri=redirect_uri,
             scope=scope,
             issuer=issuer,
-            secret=content["client_secret"],
+            auth_method=auth_method,
+            secret=secret,
         )
 
     def close(self) -> None:
@@ -159,7 +171,7 @@ class OidcClient:
         self.close()
 
     @property
-    def secret(self) -> str:
+    def secret(self) -> str | None:
         return self._secret
 
     @property

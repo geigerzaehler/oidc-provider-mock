@@ -56,6 +56,8 @@ class TokenValidator(authlib.oauth2.rfc6750.BearerTokenValidator):
 
 
 class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
+    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_basic", "client_secret_post", "none"]
+
     @override
     def query_authorization_code(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, code: str, client: Client
@@ -119,6 +121,8 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
 
 
 class RefreshTokenGrant(authlib.oauth2.rfc6749.RefreshTokenGrant):
+    TOKEN_ENDPOINT_AUTH_METHODS = ["client_secret_basic", "client_secret_post", "none"]
+
     @override
     def authenticate_refresh_token(self, refresh_token: str):
         token = storage.get_refresh_token(refresh_token)
@@ -428,23 +432,28 @@ class RegisterClientBody(pydantic.BaseModel):
 def register_client():
     body = _validate_body(flask.request, RegisterClientBody)
 
+    is_public = body.token_endpoint_auth_method == "none"
+    secret = "" if is_public else secrets.token_urlsafe(16)
+
     client = Client(
         id=str(uuid4()),
-        secret=secrets.token_urlsafe(16),
+        secret=secret,
         redirect_uris=[str(uri) for uri in body.redirect_uris],
         allowed_scopes=body.scope or Client.SCOPES_SUPPORTED,
         token_endpoint_auth_method=body.token_endpoint_auth_method,
     )
 
     storage.store_client(client)
-    return flask.jsonify({
+    response: dict[str, object] = {
         "client_id": client.id,
-        "client_secret": client.secret,
         "redirect_uris": client.redirect_uris,
         "token_endpoint_auth_method": body.token_endpoint_auth_method,
         "grant_types": Client.GRANT_TYPES_SUPPORTED,
         "response_types": Client.RESPONSE_TYPES_SUPPORTED,
-    }), HTTPStatus.CREATED
+    }
+    if not is_public:
+        response["client_secret"] = secret
+    return flask.jsonify(response), HTTPStatus.CREATED
 
 
 @blueprint.route("/oauth2/authorize", methods=["GET", "POST"])

@@ -56,6 +56,7 @@ def test_wrong_secret_rejected(oidc_server: str):
     [
         "client_secret_basic",
         "client_secret_post",
+        "none",
     ],
 )
 def test_client_auth_methods(oidc_server: str, auth_method: str):
@@ -71,6 +72,45 @@ def test_client_auth_methods(oidc_server: str, auth_method: str):
 
     userinfo = client.fetch_userinfo(token=token_data.access_token)
     assert userinfo["sub"] == subject
+
+
+def test_registered_none_auth_client(oidc_server: str):
+    subject = faker.email()
+    state = faker.password()
+
+    client = OidcClient.register(
+        oidc_server, redirect_uri=faker.uri(schemes=["https"]), auth_method="none"
+    )
+    assert client.secret is None
+
+    response = httpx.post(client.authorization_url(state=state), data={"sub": subject})
+    token_data = client.fetch_token(response.headers["location"], state=state)
+    assert token_data.claims["sub"] == subject
+
+
+@use_provider_config(require_client_registration=True)
+@pytest.mark.parametrize("wrong_method", ["client_secret_post", "none"])
+def test_auth_method_enforced_for_registered_client(
+    oidc_server: str, wrong_method: str
+):
+    state = faker.password()
+    redirect_uri = faker.uri(schemes=["https"])
+
+    registered = OidcClient.register(
+        oidc_server, redirect_uri=redirect_uri, auth_method="client_secret_basic"
+    )
+    client = OidcClient(
+        id=registered.id,
+        redirect_uri=redirect_uri,
+        auth_method=wrong_method,
+        secret=None if wrong_method == "none" else registered.secret,
+        issuer=oidc_server,
+    )
+    response = httpx.post(
+        client.authorization_url(state=state), data={"sub": faker.email()}
+    )
+    with pytest.raises(OAuthError, match="invalid_client: "):
+        client.fetch_token(response.headers["location"], state=state)
 
 
 def test_unregistered_auth_method_rejected(oidc_server: str):
