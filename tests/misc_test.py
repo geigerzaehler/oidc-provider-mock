@@ -43,6 +43,26 @@ def test_authorize_has_no_cors_headers(client: flask.testing.FlaskClient):
     assert response.headers.get("Access-Control-Allow-Methods") is None
 
 
+def test_openid_configuration_uses_forwarded_headers(
+    client: flask.testing.FlaskClient,
+):
+    response = client.get(
+        "/.well-known/openid-configuration",
+        headers={
+            "X-Forwarded-Proto": "https",
+            "X-Forwarded-Host": "provider.example.com",
+            "X-Forwarded-Port": "8443",
+        },
+    )
+
+    assert response.json
+    assert response.json["issuer"] == "https://provider.example.com:8443"
+    assert (
+        response.json["authorization_endpoint"]
+        == "https://provider.example.com:8443/oauth2/authorize"
+    )
+
+
 def test_userinfo_unauthorized(client: flask.testing.FlaskClient):
     response = client.get("/userinfo")
     assert response.status_code == HTTPStatus.UNAUTHORIZED
