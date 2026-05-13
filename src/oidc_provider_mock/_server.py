@@ -1,5 +1,5 @@
 import threading
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from datetime import timedelta
 from typing import TYPE_CHECKING
@@ -54,7 +54,7 @@ def _threaded_server(
     host: str = "localhost",
     port: int = 0,
     poll_interval: float = 0.1,
-) -> Iterator[werkzeug.serving.ThreadedWSGIServer]:
+) -> Generator[werkzeug.serving.ThreadedWSGIServer]:
     server = werkzeug.serving.make_server(
         host,
         port,

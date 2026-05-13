@@ -2,7 +2,7 @@ import json
 import random
 import subprocess
 import time
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -96,7 +96,7 @@ def test_cli():
 
 
 @contextmanager
-def _running_server(args: list[str], port: int | None = None) -> Iterator[str]:
+def _running_server(args: list[str], port: int | None = None) -> Generator[str]:
     if port is None:
         port = random.randint(40001, 65535)
     base_url = f"http://127.0.0.1:{port}"

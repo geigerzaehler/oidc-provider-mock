@@ -2,7 +2,7 @@
 
 import dataclasses
 import logging
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
@@ -71,7 +71,7 @@ def setup_logging():
 
 
 @pytest.fixture
-def oidc_server(app: flask.Flask) -> Iterator[str]:
+def oidc_server(app: flask.Flask) -> Generator[str]:
     with run_server(app) as server:
         yield server.url()
 
@@ -94,7 +94,7 @@ class TestServer:
 
 
 @contextmanager
-def run_server(app: flask.Flask) -> Iterator[TestServer]:
+def run_server(app: flask.Flask) -> Generator[TestServer]:
     with oidc_provider_mock._server._threaded_server(app, poll_interval=0.01) as server:
         app.config["SERVER_NAME"] = f"localhost:{server.server_port}"
         yield TestServer(app, server)
