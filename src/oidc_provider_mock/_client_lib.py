@@ -183,7 +183,7 @@ class OidcClient:
         if nonce is not None:
             extra["nonce"] = nonce
 
-        url, _state = self._authlib_client.create_authorization_url(  # pyright: ignore[reportUnknownVariableType,reportUnknownMemberType]
+        url, _state = self._authlib_client.create_authorization_url(  # pyright: ignore[reportUnknownMemberType]
             self._authorization_endpoint_url,
             state,
             code_verifier=None,
