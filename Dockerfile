@@ -1,8 +1,10 @@
 FROM python:3.14-slim@sha256:33ef7446e8c14b21cb247e23afbcdc90e98853b70812ca46b2265e769a7dfb8b
 
 WORKDIR /app
-COPY dist/*.whl ./
-RUN pip install *.whl && rm *.whl && pip cache purge
+COPY requirements.txt dist/*.whl ./
+RUN pip install -r requirements.txt && \
+    pip install --no-deps *.whl && \
+    rm requirements.txt *.whl
 
 EXPOSE 9400
 
