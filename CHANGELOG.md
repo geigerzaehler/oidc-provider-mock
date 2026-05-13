@@ -4,6 +4,7 @@
 
 - Add support for public (i.e. unauthenticated) clients
 - Respect forwarded host, protocol, and port headers when generating OpenID configuration URLs ([@danielalvsaaker][]).
+- Add support for Authlib v1.7
 
 [@danielalvsaaker]: https://github.com/danielalvsaaker
 

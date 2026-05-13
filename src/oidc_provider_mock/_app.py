@@ -17,11 +17,10 @@ import authlib.oauth2.rfc6750
 import authlib.oidc.core
 import flask
 import flask.typing
+import joserfc.jwk
 import pydantic
-import werkzeug.debug
 import werkzeug.exceptions
 import werkzeug.local
-from authlib import jose
 from authlib.integrations import flask_oauth2
 from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
@@ -44,6 +43,8 @@ assert __package__
 _logger = logging.getLogger(__package__)
 
 _JWS_ALG = "RS256"
+
+_authlib_version = tuple(int(x) for x in authlib.__version__.split(".")[:2])
 
 
 class TokenValidator(authlib.oauth2.rfc6750.BearerTokenValidator):
@@ -105,16 +106,29 @@ class OpenIDCode(authlib.oidc.core.OpenIDCode):
     def exists_nonce(self, nonce: str, request: OAuth2Request) -> bool:
         return storage.exists_nonce(nonce)
 
-    @override
-    def get_jwt_config(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, grant: authlib.oauth2.rfc6749.BaseGrant, client: object = None
-    ):
-        return {
-            "key": storage.jwk.as_dict(is_private=True),  # pyright: ignore[reportUnknownMemberType]
-            "alg": _JWS_ALG,
-            "exp": int(self._token_max_mage.total_seconds()),
-            "iss": flask.request.host_url.rstrip("/"),
-        }
+    if _authlib_version >= (1, 7):
+
+        def resolve_client_private_key(self, client: object):
+            return joserfc.jwk.KeySet([storage.jwk])
+
+        def get_client_claims(self, client: object):
+            return {
+                "iss": flask.request.host_url.rstrip("/"),
+                "exp": int((datetime.now(UTC) + self._token_max_mage).timestamp()),
+            }
+
+    else:
+
+        @override
+        def get_jwt_config(  # pyright: ignore[reportIncompatibleMethodOverride]
+            self, grant: authlib.oauth2.rfc6749.BaseGrant, client: object = None
+        ):
+            return {
+                "key": storage.jwk.as_dict(is_private=True),
+                "alg": _JWS_ALG,
+                "exp": int(self._token_max_mage.total_seconds()),
+                "iss": flask.request.host_url.rstrip("/"),
+            }
 
     @override
     def generate_user_info(self, user: User, scope: str):  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -382,8 +396,6 @@ def init_app(
 
     app.debug = True
     app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_proto=1, x_port=1)
-    app.wsgi_app = werkzeug.debug.DebuggedApplication(app.wsgi_app)
-    app.wsgi_app.trusted_hosts.append("localhost")
 
     return app
 
@@ -422,9 +434,7 @@ def openid_config():
 
 @blueprint.get("/jwks")
 def jwks():
-    return flask.jsonify(
-        jose.KeySet((storage.jwk,)).as_dict(),  # pyright: ignore[reportUnknownMemberType]
-    )
+    return flask.jsonify(joserfc.jwk.KeySet([storage.jwk]).as_dict())
 
 
 class RegisterClientBody(pydantic.BaseModel):

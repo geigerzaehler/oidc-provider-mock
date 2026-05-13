@@ -7,8 +7,8 @@ from typing import ClassVar, Literal, cast, override
 import authlib.oauth2.rfc6749
 import authlib.oidc.core
 import flask
+import joserfc.jwk
 import werkzeug.local
-from authlib import jose
 
 
 class ClientAllowAny:
@@ -56,8 +56,10 @@ class Client(authlib.oauth2.rfc6749.ClientMixin):
         return self.redirect_uris[0]
 
     @override
-    def get_allowed_scope(self, scope: Collection[str] | str) -> str:
-        if isinstance(scope, str):
+    def get_allowed_scope(self, scope: Collection[str] | str | None) -> str:
+        if scope is None:
+            scopes = ()
+        elif isinstance(scope, str):
             scopes = scope.split()
         else:
             scopes = scope
@@ -175,7 +177,7 @@ class RefreshToken(AccessToken):
 
 
 class Storage:
-    jwk: jose.RSAKey
+    jwk: joserfc.jwk.RSAKey
 
     _clients: dict[str, Client]
     _users: dict[str, User]
@@ -186,7 +188,7 @@ class Storage:
     _recent_subjects: deque[str]
 
     def __init__(self) -> None:
-        self.jwk = jose.RSAKey.generate_key(is_private=True)  # pyright: ignore[reportUnknownMemberType]
+        self.jwk = joserfc.jwk.RSAKey.generate_key(private=True)
         self._clients = {}
         self._users = {}
         self._authorization_codes = {}
