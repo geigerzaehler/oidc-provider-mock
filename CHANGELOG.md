@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.3 - 2026-05-13
 
 - Add support for public (i.e. unauthenticated) clients
 - Respect forwarded host, protocol, and port headers when generating OpenID configuration URLs ([@danielalvsaaker][]).
