@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 from typing import Never, cast, override
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
 from uuid import uuid4
 
 import authlib.deprecate
@@ -25,6 +25,7 @@ from authlib import jose
 from authlib.integrations import flask_oauth2
 from authlib.integrations.flask_oauth2.requests import FlaskOAuth2Request
 from authlib.oauth2 import OAuth2Error, OAuth2Request
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from . import _client
 from ._storage import (
@@ -380,6 +381,7 @@ def init_app(
     app.register_blueprint(_client.blueprint)
 
     app.debug = True
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1, x_proto=1, x_port=1)
     app.wsgi_app = werkzeug.debug.DebuggedApplication(app.wsgi_app)
     app.wsgi_app.trusted_hosts.append("localhost")
 
@@ -394,7 +396,10 @@ def home():
 @blueprint.get("/.well-known/openid-configuration")
 def openid_config():
     def url_for(fn: Callable[..., object]) -> str:
-        return flask.url_for(f".{fn.__name__}", _external=True)
+        return urljoin(
+            flask.request.host_url,
+            flask.url_for(f".{fn.__name__}"),
+        )
 
     # See https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
     # for information about the fields.
