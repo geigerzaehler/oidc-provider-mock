@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Add support for public (i.e. unauthenticated) clients
+
 ## v0.4.2 - 2026-05-04
 
 - Added `--user-claims-file` option which allows loading user claims as a YAML/JSON file ([@bmispelon][], [@ghbm-itk][]).
