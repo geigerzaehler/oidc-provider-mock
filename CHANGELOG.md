@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Add support for public (i.e. unauthenticated) clients
+- Respect forwarded host, protocol, and port headers when generating OpenID configuration URLs ([@danielalvsaaker][]).
+
+[@danielalvsaaker]: https://github.com/danielalvsaaker
 
 ## v0.4.2 - 2026-05-04
 
