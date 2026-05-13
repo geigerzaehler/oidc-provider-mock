@@ -4,7 +4,10 @@ WORKDIR /app
 COPY requirements.txt dist/*.whl ./
 RUN pip install -r requirements.txt && \
     pip install --no-deps *.whl && \
-    rm requirements.txt *.whl
+    rm requirements.txt *.whl && \
+    pip cache purge
+
+RUN pip check
 
 EXPOSE 9400
 

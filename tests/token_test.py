@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import flask.testing
 import httpx
+import joserfc.jws
 import pytest
 from authlib.integrations.base_client import OAuthError
 from faker import Faker
@@ -114,3 +115,19 @@ def test_userinfo_expired_token(oidc_server: str):
 
         response = e.value.response.json()
         assert response["error"] == "invalid_token"
+
+
+def test_id_token_header_has_kid(oidc_server: str):
+    state = faker.password()
+    client = fake_client(oidc_server)
+
+    auth_response = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": faker.email()},
+    )
+    client.fetch_token(auth_response.headers["location"], state=state)
+
+    id_token = client._authlib_client.token["id_token"]  # type: ignore[index]
+    assert isinstance(id_token, str)
+    header = joserfc.jws.extract_compact(id_token.encode()).protected
+    assert "kid" in header
