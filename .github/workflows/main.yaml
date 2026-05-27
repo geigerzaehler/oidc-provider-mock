@@ -90,7 +90,7 @@ jobs:
         with:
           version: 0.11.16
       - run: uv export --frozen --no-dev --no-emit-project -o requirements.txt
-      - uses: docker/setup-docker-action@b2189fbf2a6592b51fee7cdd93ee2bfaeba733db # v5.1.0
+      - uses: docker/setup-docker-action@0234bb73ccb40f0c430b795634f9247e2b5c2d23 # v5.2.0
         with:
           daemon-config: |
             {
@@ -100,7 +100,7 @@ jobs:
               }
             }
       - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-      - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
       - uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         if: github.ref == 'refs/heads/release/candidate'
         with:
