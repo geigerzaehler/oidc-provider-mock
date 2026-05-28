@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Don't expose private key on `/jwks` endpoint.
+
 ## v0.4.3 - 2026-05-13
 
 - Add support for public (i.e. unauthenticated) clients
