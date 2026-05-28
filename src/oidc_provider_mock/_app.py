@@ -434,7 +434,7 @@ def openid_config():
 
 @blueprint.get("/jwks")
 def jwks():
-    return flask.jsonify(joserfc.jwk.KeySet([storage.jwk]).as_dict())
+    return flask.jsonify(joserfc.jwk.KeySet([storage.jwk]).as_dict(private=False))
 
 
 class RegisterClientBody(pydantic.BaseModel):
