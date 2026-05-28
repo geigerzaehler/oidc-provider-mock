@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.4 - 2026-05-28
 
 - Don't expose private key on `/jwks` endpoint.
 
