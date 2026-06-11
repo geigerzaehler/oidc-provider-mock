@@ -579,7 +579,7 @@ wheels = [
 
 [[package]]
 name = "inline-snapshot"
-version = "0.32.7"
+version = "0.34.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asttokens" },
@@ -588,9 +588,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/ff/86b039f42822958012e92db85878655ef49e3e9887d2d9c95e27dab3ee51/inline_snapshot-0.32.7.tar.gz", hash = "sha256:1a97a50420de32b86c422cceadf950f1f343ba03a28b878a757ee492b741c093", size = 2630267, upload-time = "2026-04-23T19:00:44.566Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/2e/00c99468c7788bdb4f7d861bcfbfb091a5fe1bc475f9dd031f667c422a73/inline_snapshot-0.34.1.tar.gz", hash = "sha256:f8af37876c42069b7c0ed73f64357ace482955c3225ebcd27f243197ecfbcb65", size = 2638769, upload-time = "2026-06-05T16:58:47.921Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/2c/31453f42995e22ff5cb12694796b6e7890b3e06ea1ba10d3f5cf5fde6b18/inline_snapshot-0.32.7-py3-none-any.whl", hash = "sha256:6ea0e211daf9192aeb91ab82ba90e5bb628414696c9a5d3bc4db1c5ba459c4c6", size = 85439, upload-time = "2026-04-23T19:00:42.472Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/83/21747d0ee2276e973a2889e960f2ec904fbbe83fac6fecd8a57995bb81df/inline_snapshot-0.34.1-py3-none-any.whl", hash = "sha256:4c043215866dfdbe6a3ead92d9d0a9294720c7deebddc346dc781654cb19daa9", size = 90039, upload-time = "2026-06-05T16:58:46.038Z" },
 ]
 
 [[package]]
@@ -864,7 +864,7 @@ dev = [
     { name = "flask-oidc", specifier = "~=2.4" },
     { name = "freezegun", specifier = "~=1.5" },
     { name = "httpx", specifier = "~=0.28.1" },
-    { name = "inline-snapshot", specifier = "~=0.32.7" },
+    { name = "inline-snapshot", specifier = "~=0.34.1" },
     { name = "ipython", specifier = "~=9.10" },
     { name = "myst-parser", specifier = "~=5.0" },
     { name = "pyright", specifier = "==1.1.409" },
