@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Issue `id_tokens` when requesting new tokens with a refresh token ([@apollo13][]).
+
+[@apollo13]: https://github.com/apollo13
+
 ## v0.4.4 - 2026-05-28
 
 - Don't expose private key on `/jwks` endpoint.

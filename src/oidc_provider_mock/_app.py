@@ -306,17 +306,16 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
         save_token=save_token,
     )
 
-    authorization.register_grant(
-        AuthorizationCodeGrant,
-        [
-            OpenIDCode(
-                require_nonce=config.require_nonce,
-                token_max_age=config.access_token_max_age,
-            )
-        ],
-    )
-
-    authorization.register_grant(RefreshTokenGrant)
+    for grant in (AuthorizationCodeGrant, RefreshTokenGrant):
+        authorization.register_grant(
+            grant,
+            [
+                OpenIDCode(
+                    require_nonce=config.require_nonce,
+                    token_max_age=config.access_token_max_age,
+                )
+            ],
+        )
 
 
 @blueprint.record_once
