@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.5 - 2026-06-21
 
 - Issue `id_tokens` when requesting new tokens with a refresh token ([@apollo13][]).
 
