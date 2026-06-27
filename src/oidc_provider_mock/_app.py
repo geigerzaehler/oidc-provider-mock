@@ -235,6 +235,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
 
     setup_state.app.config["OAUTH2_TOKEN_EXPIRES_IN"] = {
         "authorization_code": int(config.access_token_max_age.total_seconds()),
+        "refresh_token": int(config.access_token_max_age.total_seconds()),
     }
 
     setup_state.app.config["OAUTH2_REFRESH_TOKEN_GENERATOR"] = (

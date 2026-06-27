@@ -71,6 +71,29 @@ def test_refresh_token_rotates_access_token(oidc_server: str):
     client.fetch_userinfo(token=refresh_token_data.access_token)
 
 
+@use_provider_config(access_token_max_age=timedelta(minutes=2))
+def test_refresh_token_respects_configured_token_max_age(oidc_server: str):
+    state = faker.password()
+
+    client = fake_client(oidc_server)
+
+    response = httpx.post(
+        client.authorization_url(state=state),
+        data={"sub": faker.email()},
+    )
+    token_data = client.fetch_token(response.headers["location"], state=state)
+    assert token_data.expires_in == 2 * 60
+
+    assert token_data.refresh_token is not None
+    refresh_token_data = client.refresh_token(refresh_token=token_data.refresh_token)
+
+    # The refreshed access and ID tokens must use the configured max age, not
+    # the default of one hour.
+    assert refresh_token_data.expires_in == 2 * 60
+    assert refresh_token_data.claims is not None
+    assert refresh_token_data.claims["exp"] - refresh_token_data.claims["iat"] == 2 * 60  # type: ignore
+
+
 def test_refresh_token_issues_id_token(oidc_server: str):
     state = faker.password()
 
