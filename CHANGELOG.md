@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Refreshed access tokens respect the configured `access_token_max_age` ([@masenf][])
+
+[@masenf]: https://github.com/masenf
+
 ## v0.4.5 - 2026-06-21
 
 - Issue `id_tokens` when requesting new tokens with a refresh token ([@apollo13][]).
