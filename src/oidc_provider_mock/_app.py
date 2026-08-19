@@ -503,7 +503,8 @@ def authorize() -> flask.typing.ResponseReturnValue:
         if flask.request.form.get("action") == "deny":
             return authorization.handle_response(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
                 *authlib.oauth2.rfc6749.AccessDeniedError(  # pyright: ignore[reportUnknownArgumentType]
-                    redirect_uri=flask.request.args["redirect_uri"]
+                    redirect_uri=flask.request.args["redirect_uri"],
+                    state=flask.request.args.get("state"),
                 )()
             )
 
