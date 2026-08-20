@@ -130,20 +130,20 @@ extend-select = [
 ]
 ignore = [
   # Pyright checks for unused imports and does it better.
-  "F401",
+  "unused-import",
   # contextlib.suppress() is less explicit
-  "SIM105",
+  "suppressible-exception",
   # ternary is often less readable
-  "SIM108",
+  "if-else-block-instead-of-if-exp",
   # Ignore ambigious unicode characters
-  "RUF001",
-  "RUF002",
-  "RUF003",
+  "ambiguous-unicode-character-string",
+  "ambiguous-unicode-character-docstring",
+  "ambiguous-unicode-character-comment",
   # ClassVar annotations are to verbose
-  "RUF012",
+  "mutable-class-default",
   # It’s ok to reimplement operators in lambdas. The lambda is more explicit and
   # easier to understand.
-  "FURB118",
+  "reimplemented-operator",
 ]
 
 [tool.pyright]
