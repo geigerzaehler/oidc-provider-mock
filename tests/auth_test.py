@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from typing import Any
 
-import httpx
+import httpx2
 import pytest
 from faker import Faker
 
@@ -27,7 +27,7 @@ def test_auth_success(oidc_server: str):
 
     client = OidcClient.register(oidc_server, redirect_uri=redirect_uri)
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state, nonce=nonce),
         data={"sub": subject},
     )
@@ -50,14 +50,14 @@ def test_user_endpoint_claims_in_tokens(oidc_server: str):
     subject = faker.email()
     state = faker.password()
 
-    httpx.put(
+    httpx2.put(
         f"{oidc_server}/users/{subject}",
         json={"custom": "CLAIM"},
     ).raise_for_status()
 
     client = fake_client(issuer=oidc_server)
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": subject},
     )
@@ -81,7 +81,7 @@ def test_preconfigured_claims_in_tokens(oidc_server: str):
 
     client = fake_client(issuer=oidc_server)
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": "alice"},
     )
@@ -112,14 +112,14 @@ def test_include_all_claims(oidc_server: str):
         "phone": faker.phone_number(),
     }
 
-    httpx.put(f"{oidc_server}/users/{subject}", json=claims).raise_for_status()
+    httpx2.put(f"{oidc_server}/users/{subject}", json=claims).raise_for_status()
 
     client = fake_client(
         issuer=oidc_server,
         scope="openid profile email address phone",
     )
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": subject},
     )
@@ -147,7 +147,7 @@ def test_auth_denied(oidc_server: str, subtests: pytest.Subtests):
 
     client = fake_client(oidc_server)
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"action": "deny"},
     )
@@ -171,7 +171,7 @@ def test_nonce_required_error(oidc_server: str):
 
     client = fake_client(oidc_server)
     auth_url = client.authorization_url(state=state)
-    token_data = httpx.post(auth_url, data={"sub": faker.email()})
+    token_data = httpx2.post(auth_url, data={"sub": faker.email()})
     with pytest.raises(
         AuthorizationError,
         match=re.compile(
@@ -182,6 +182,6 @@ def test_nonce_required_error(oidc_server: str):
 
     nonce = faker.password()
     auth_url = client.authorization_url(state=state, nonce=nonce)
-    token_data = httpx.post(auth_url, data={"sub": faker.email()})
+    token_data = httpx2.post(auth_url, data={"sub": faker.email()})
     token_data = client.fetch_token(token_data.headers["location"], state=state)
     assert token_data.claims["nonce"] == nonce

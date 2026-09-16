@@ -51,7 +51,7 @@ def oidc_server():
 
 def test_auth_code_login(client: flask.testing.FlaskClient, oidc_server: str):
     # Add OIDC claims for the user we want to authenticate
-    response = httpx.put(
+    response = httpx2.put(
         f"{oidc_server}/users/{quote('alice@example.com')}",
         json={"email": "alice@example.com", "name": "Alice", "custom": ["foo", "bar"]},
     )
@@ -62,7 +62,7 @@ def test_auth_code_login(client: flask.testing.FlaskClient, oidc_server: str):
     assert response.location
 
     # Authorize the client by POSTing to the authorization URL.
-    response = httpx.post(response.location, data={"sub": "alice@example.com"})
+    response = httpx2.post(response.location, data={"sub": "alice@example.com"})
 
     # Go back to the client with the authorization code
     assert response.has_redirect_location
@@ -85,7 +85,7 @@ def test_auth_code_login_playwright(
     live_server: LiveServer, oidc_server: str, page: Page
 ):
     # Let the OIDC provider know about the user’s email and name
-    response = httpx.put(
+    response = httpx2.put(
         f"{oidc_server}/users/{quote('alice@example.com')}",
         json={"email": "alice@example.com", "name": "Alice"},
     )

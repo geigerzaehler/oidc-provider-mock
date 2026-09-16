@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-import httpx
+import httpx2
 import pytest
 from authlib.integrations.base_client import OAuthError
 from faker import Faker
@@ -18,7 +18,7 @@ def test_unregistered_client_rejected(oidc_server: str):
 
     client = fake_client(oidc_server)
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": faker.email()},
     )
@@ -42,7 +42,7 @@ def test_wrong_secret_rejected(oidc_server: str):
         redirect_uri=redirect_uri,
     )
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": faker.email()},
     )
@@ -65,7 +65,7 @@ def test_client_auth_methods(oidc_server: str, auth_method: str):
 
     client = fake_client(oidc_server, auth_method=auth_method)
     auth_url = client.authorization_url(state=state)
-    response = httpx.post(auth_url, data={"sub": subject})
+    response = httpx2.post(auth_url, data={"sub": subject})
 
     token_data = client.fetch_token(response.headers["location"], state)
     assert token_data.claims["sub"] == subject
@@ -83,7 +83,7 @@ def test_registered_none_auth_client(oidc_server: str):
     )
     assert client.secret is None
 
-    response = httpx.post(client.authorization_url(state=state), data={"sub": subject})
+    response = httpx2.post(client.authorization_url(state=state), data={"sub": subject})
     token_data = client.fetch_token(response.headers["location"], state=state)
     assert token_data.claims["sub"] == subject
 
@@ -106,7 +106,7 @@ def test_auth_method_enforced_for_registered_client(
         secret=None if wrong_method == "none" else registered.secret,
         issuer=oidc_server,
     )
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state), data={"sub": faker.email()}
     )
     with pytest.raises(OAuthError, match="invalid_client: "):
@@ -128,6 +128,6 @@ def test_unregistered_auth_method_rejected(oidc_server: str):
         issuer=oidc_server,
     )
     auth_url = client.authorization_url(state=state)
-    response = httpx.post(auth_url, data={"sub": faker.email()})
+    response = httpx2.post(auth_url, data={"sub": faker.email()})
     with pytest.raises(OAuthError, match="invalid_client: "):
         client.fetch_token(response.headers["location"], state=state)

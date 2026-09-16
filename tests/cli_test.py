@@ -6,7 +6,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-import httpx
+import httpx2
 import yaml
 from faker import Faker
 from inline_snapshot import snapshot
@@ -76,7 +76,7 @@ def test_cli_user_claims_file(tmp_path: Path):
     with _running_server(["--user-claims-file", str(claims_file)]) as base_url:
         state = faker.password()
         with fake_client(issuer=base_url) as client:
-            response = httpx.post(
+            response = httpx2.post(
                 client.authorization_url(state=state),
                 data={"sub": "alice"},
             )
@@ -90,7 +90,7 @@ def test_cli_user_claims_file(tmp_path: Path):
 def test_cli():
     with _running_server(["--user-claims", json.dumps({"sub": "foo"})]) as base_url:
         assert (
-            httpx.get(f"{base_url}/.well-known/openid-configuration").json()["issuer"]
+            httpx2.get(f"{base_url}/.well-known/openid-configuration").json()["issuer"]
             == base_url
         )
 
@@ -106,11 +106,11 @@ def _running_server(args: list[str], port: int | None = None) -> Generator[str]:
         try:
             for _ in range(10):
                 try:
-                    httpx.get(
+                    httpx2.get(
                         f"{base_url}/.well-known/openid-configuration"
                     ).raise_for_status()
                     break
-                except (httpx.ConnectError, httpx.HTTPStatusError):
+                except (httpx2.ConnectError, httpx2.HTTPStatusError):
                     time.sleep(0.3)
             else:
                 raise RuntimeError(f"Server at {base_url} did not start in time")

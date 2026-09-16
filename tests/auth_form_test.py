@@ -3,7 +3,7 @@ from http import HTTPStatus
 from urllib.parse import urlencode
 
 import flask.testing
-import httpx
+import httpx2
 import pytest
 from faker import Faker
 from playwright.sync_api import Page, expect
@@ -137,7 +137,7 @@ def test_authorized_users_buttons_appear(oidc_server: str, page: Page):
     subject1 = faker.email()
 
     for sub in [subject0, subject1, subject0]:
-        httpx.post(
+        httpx2.post(
             client.authorization_url(state=faker.password()),
             data={"sub": sub},
         )
