@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Send `state=` parameter on error responses and not only on authentication success.
+
 ## v0.4.6 - 2026-06-29
 
 - Refreshed access tokens respect the configured `access_token_max_age` ([@masenf][])

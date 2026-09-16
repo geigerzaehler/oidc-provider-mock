@@ -1,6 +1,7 @@
 """Tests the authorization code flow via direct HTTP requests."""
 
 import re
+import urllib.parse
 from typing import Any
 
 import httpx
@@ -141,18 +142,27 @@ def test_include_all_claims(oidc_server: str):
     assert user_info["phone"] == claims["phone"]
 
 
-def test_auth_denied(oidc_server: str):
+def test_auth_denied(oidc_server: str, subtests: pytest.Subtests):
     state = faker.password()
 
     client = fake_client(oidc_server)
 
     response = httpx.post(
-        client.authorization_url(state=faker.password()),
+        client.authorization_url(state=state),
         data={"action": "deny"},
     )
 
-    with pytest.raises(AuthorizationError, match=r"access_denied"):
-        client.fetch_token(response.headers["location"], state=state)
+    return_url = response.headers["location"]
+    with subtests.test("regression test: errors should contain the state= parameter"):
+        parsed_url = urllib.parse.urlsplit(return_url)
+        qs = urllib.parse.parse_qs(parsed_url.query)
+        assert qs["state"] == [state]
+
+    with (
+        subtests.test("auth should fail"),
+        pytest.raises(AuthorizationError, match=r"access_denied"),
+    ):
+        client.fetch_token(return_url, state=state)
 
 
 @use_provider_config(require_nonce=True)
