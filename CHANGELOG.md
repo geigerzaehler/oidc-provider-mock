@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.7 - 2026-09-16
 
 - Switch to `httpx2` from `httpx`
 - Send `state=` parameter on error responses and not only on authentication success.
