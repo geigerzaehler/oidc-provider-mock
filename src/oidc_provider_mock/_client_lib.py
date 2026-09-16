@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal, Self
 from urllib.parse import parse_qsl, urljoin, urlparse
 
-import httpx
+import httpx2
 import joserfc.jwk
 import joserfc.jwt
 import pydantic
@@ -78,7 +78,7 @@ class OidcClient:
         config = self.get_authorization_server_metadata(issuer)
 
         self._jwks = joserfc.jwk.KeySet.import_key_set(
-            httpx.get(config["jwks_uri"]).json()
+            httpx2.get(config["jwks_uri"]).json()
         )
 
         self._issuer = config["issuer"]
@@ -99,7 +99,7 @@ class OidcClient:
     def get_authorization_server_metadata(cls, provider_url: str):
         # TODO: validate response schema
         return (
-            httpx
+            httpx2
             .get(
                 urljoin(provider_url, ".well-known/openid-configuration"),
                 follow_redirects=True,
@@ -125,7 +125,7 @@ class OidcClient:
         # TODO: handle
         if endpoint := config.get("registration_endpoint"):
             content = (
-                httpx
+                httpx2
                 .post(
                     endpoint,
                     json={
@@ -262,7 +262,7 @@ class OidcClient:
     def fetch_userinfo(self, token: str):
         # TODO: validate response schema
         return (
-            httpx
+            httpx2
             .get(
                 self._userinfo_enpoint_url, headers={"authorization": f"bearer {token}"}
             )

@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import flask.testing
-import httpx
+import httpx2
 import joserfc.jws
 import pytest
 from authlib.integrations.base_client import OAuthError
@@ -43,7 +43,7 @@ def test_refresh_token_rotates_access_token(oidc_server: str):
     refresh_token_data = client.refresh_token(refresh_token=token_data.refresh_token)
 
     # Using a refresh token revokes the old access token
-    with pytest.raises(httpx.HTTPStatusError) as e:
+    with pytest.raises(httpx2.HTTPStatusError) as e:
         client.fetch_userinfo(token=token_data.access_token)
     assert e.value.response.json()["error"] == "access_denied"
 
@@ -83,9 +83,9 @@ def test_revoke_tokens(oidc_server: str):
 
     token_data = _authorize_and_fetch_token(client, sub=sub)
 
-    httpx.post(f"{oidc_server}users/{sub}/revoke-tokens").raise_for_status()
+    httpx2.post(f"{oidc_server}users/{sub}/revoke-tokens").raise_for_status()
 
-    with pytest.raises(httpx.HTTPStatusError) as e:
+    with pytest.raises(httpx2.HTTPStatusError) as e:
         client.fetch_userinfo(token=token_data.access_token)
     assert e.value.response.json()["error"] == "access_denied"
 
@@ -105,7 +105,7 @@ def test_userinfo_expired_token(oidc_server: str):
         client = fake_client(oidc_server)
         token_data = _authorize_and_fetch_token(client)
         frozen_datetime.tick(timedelta(minutes=112))
-        with pytest.raises(httpx.HTTPStatusError) as e:
+        with pytest.raises(httpx2.HTTPStatusError) as e:
             client.fetch_userinfo(token=token_data.access_token)
 
         response = e.value.response.json()
@@ -125,7 +125,7 @@ def test_id_token_header_has_kid(oidc_server: str):
 
 def _authorize_and_fetch_token(client: OidcClient, sub: str | None = None) -> TokenData:
     state = faker.password()
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": faker.email() if sub is None else sub},
     )

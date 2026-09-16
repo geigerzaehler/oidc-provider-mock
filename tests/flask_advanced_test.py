@@ -5,7 +5,7 @@
 
 from urllib.parse import quote
 
-import httpx
+import httpx2
 import pytest
 from freezegun import freeze_time
 from playwright.sync_api import Page, expect
@@ -25,7 +25,7 @@ def test_refresh_token_extends_session(
     relying_party: TestServer, page: Page, oidc_server: str
 ):
     with freeze_time("1 Jan 2020", tick=True) as frozen_datetime:
-        response = httpx.put(
+        response = httpx2.put(
             f"{oidc_server}/users/{quote('alice@example.com')}",
             json={"email": "alice@example.com", "name": "Alice"},
         )
@@ -49,7 +49,7 @@ def test_refresh_token_extends_session(
 @use_provider_config(issue_refresh_token=False)
 def test_access_token_expired(relying_party: TestServer, oidc_server: str, page: Page):
     with freeze_time("1 Jan 2020", tick=True) as frozen_datetime:
-        response = httpx.put(
+        response = httpx2.put(
             f"{oidc_server}/users/{quote('alice@example.com')}",
             json={"email": "alice@example.com", "name": "Alice"},
         )

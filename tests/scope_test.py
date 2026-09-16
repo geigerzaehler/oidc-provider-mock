@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 import pytest
 from faker import Faker
 
@@ -14,7 +14,7 @@ def test_openid_scope_required(oidc_server: str):
 
     client = fake_client(oidc_server, scope="foo bar")
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": faker.email()},
     )
@@ -34,7 +34,7 @@ def test_email_claim_excluded_without_scope(oidc_server: str):
         redirect_uri=faker.uri(schemes=["https"]),
     )
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state),
         data={"sub": faker.email()},
     )
@@ -53,7 +53,7 @@ def test_scope_capped_to_client_registration(oidc_server: str):
         redirect_uri=faker.uri(schemes=["https"]),
     )
 
-    response = httpx.post(
+    response = httpx2.post(
         client.authorization_url(state=state, scope="openid other notallowed"),
         data={"sub": faker.email()},
     )

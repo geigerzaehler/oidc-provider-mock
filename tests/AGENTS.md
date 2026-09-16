@@ -29,6 +29,6 @@
 
 - `fake_client(issuer)` in `conftest.py`: use when the test doesn't need a registered client
 - `OidcClient.register(oidc_server, ...)`: calls `POST /oauth2/clients` and returns a configured client — use when the test needs a specific redirect URI or scope
-- Browser tests use Playwright's `expect(...)` assertions; non-browser tests use `httpx` for real HTTP or Flask's `client` for in-process requests
+- Browser tests use Playwright's `expect(...)` assertions; non-browser tests use `httpx2` for real HTTP or Flask's `client` for in-process requests
 - `freeze_time` (freezegun) is used for token expiry tests
 - `faker` generates random values for subjects, URIs, passwords, etc. — tests are not deterministic by design
