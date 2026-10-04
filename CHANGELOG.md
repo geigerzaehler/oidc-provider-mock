@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## v0.4.8 - 2026-09-16
 
 - `auth_time` claim on refreshed ID token has the value of the original
   authorization token.
