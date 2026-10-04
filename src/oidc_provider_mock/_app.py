@@ -93,6 +93,7 @@ class AuthorizationCodeGrant(authlib.oauth2.rfc6749.AuthorizationCodeGrant):
                     redirect_uri=request.redirect_uri,  # pyright: ignore[reportDeprecated]
                     scope=request.scope,  # pyright: ignore[reportDeprecated]
                     nonce=request.data.get("nonce"),  # pyright: ignore[reportDeprecated]
+                    auth_time=int(datetime.now(UTC).timestamp()),
                 )
             )
 
@@ -143,6 +144,17 @@ class RefreshTokenGrant(authlib.oauth2.rfc6749.RefreshTokenGrant):
         token = storage.get_refresh_token(refresh_token)
         if not token:
             raise authlib.oauth2.rfc6749.InvalidGrantError("invalid refresh token")
+
+        # Carries auth_time into encode_id_token, which reads it from here.
+        self.request.authorization_code = AuthorizationCode(
+            code="",
+            client_id=token.client_id,
+            redirect_uri="",
+            user_id=token.user_id,
+            scope=token.scope,
+            nonce=None,
+            auth_time=token.auth_time,
+        )
 
         return token
 
@@ -288,6 +300,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
         if "refresh_token" in token:
             assert isinstance(token["refresh_token"], str)
             assert isinstance(request.client, Client)
+            assert isinstance(request.authorization_code, AuthorizationCode)
 
             storage.store_refresh_token(
                 RefreshToken(
@@ -298,6 +311,7 @@ def setup(setup_state: flask.blueprints.BlueprintSetupState):
                     expires_at=datetime.now(UTC)
                     + timedelta(seconds=token["expires_in"]),
                     client_id=request.client.id,
+                    auth_time=request.authorization_code.auth_time,
                 )
             )
 

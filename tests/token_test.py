@@ -77,6 +77,24 @@ def test_refresh_token_issues_id_token(oidc_server: str):
     assert refresh_token_data.claims["sub"] == email
 
 
+def test_refresh_token_keeps_original_auth_time(oidc_server: str):
+    with freeze_time(faker.date(), tick=True) as frozen_datetime:
+        client = fake_client(oidc_server)
+        token_data = _authorize_and_fetch_token(client)
+        assert token_data.claims is not None
+        original_auth_time = token_data.claims["auth_time"]
+
+        frozen_datetime.tick(timedelta(minutes=10))
+
+        assert token_data.refresh_token is not None
+        refresh_token_data = client.refresh_token(
+            refresh_token=token_data.refresh_token
+        )
+
+        assert refresh_token_data.claims is not None
+        assert refresh_token_data.claims["auth_time"] == original_auth_time
+
+
 def test_revoke_tokens(oidc_server: str):
     sub = faker.email()
     client = fake_client(oidc_server)
