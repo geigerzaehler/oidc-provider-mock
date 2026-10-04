@@ -13,6 +13,8 @@ import pytest
 import typeguard
 import werkzeug.serving
 from faker import Faker
+from freezegun import freeze_time
+from freezegun.api import TickingDateTimeFactory
 from playwright.sync_api import Page
 
 typeguard.install_import_hook("oidc_provider_mock")
@@ -21,6 +23,8 @@ import oidc_provider_mock._server
 from oidc_provider_mock._app import Config
 from oidc_provider_mock._client_lib import OidcClient
 from oidc_provider_mock._storage import User
+
+_faker = Faker()
 
 
 @pytest.fixture
@@ -77,6 +81,13 @@ def oidc_server(app: flask.Flask) -> Generator[str]:
 
 
 @pytest.fixture
+def ticking_datetime() -> Generator[TickingDateTimeFactory]:
+    with freeze_time(_faker.date(), tick=True) as ticking_datetime:
+        assert isinstance(ticking_datetime, TickingDateTimeFactory)
+        yield ticking_datetime
+
+
+@pytest.fixture
 def page(page: Page):
     page.set_default_navigation_timeout(3000)
     page.set_default_timeout(3000)
@@ -98,9 +109,6 @@ def run_server(app: flask.Flask) -> Generator[TestServer]:
     with oidc_provider_mock._server._threaded_server(app, poll_interval=0.01) as server:
         app.config["SERVER_NAME"] = f"localhost:{server.server_port}"
         yield TestServer(app, server)
-
-
-_faker = Faker()
 
 
 def fake_client(
