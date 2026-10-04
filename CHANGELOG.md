@@ -1,5 +1,10 @@
 # Changes
 
+## Unreleased
+
+- `auth_time` claim on refreshed ID token has the value of the original
+  authorization token.
+
 ## v0.4.7 - 2026-09-16
 
 - Switch to `httpx2` from `httpx`

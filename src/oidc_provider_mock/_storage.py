@@ -113,6 +113,7 @@ class AuthorizationCode(authlib.oidc.core.AuthorizationCodeMixin):
     user_id: str
     scope: str
     nonce: str | None
+    auth_time: int
 
     # Implement AuthorizationCodeMixin
 
@@ -130,7 +131,7 @@ class AuthorizationCode(authlib.oidc.core.AuthorizationCodeMixin):
 
     @override
     def get_auth_time(self) -> int | None:
-        return None
+        return self.auth_time
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -170,6 +171,7 @@ class AccessToken(authlib.oauth2.rfc6749.TokenMixin):
 class RefreshToken(AccessToken):
     client_id: str
     access_token: str
+    auth_time: int
 
     @override
     def check_client(self, client: Client) -> bool:

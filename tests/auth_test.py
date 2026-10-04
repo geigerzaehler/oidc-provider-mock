@@ -2,11 +2,13 @@
 
 import re
 import urllib.parse
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx2
 import pytest
 from faker import Faker
+from freezegun import freeze_time
 
 from oidc_provider_mock._client_lib import AuthorizationError, OidcClient
 from oidc_provider_mock._storage import User
@@ -27,21 +29,23 @@ def test_auth_success(oidc_server: str):
 
     client = OidcClient.register(oidc_server, redirect_uri=redirect_uri)
 
-    response = httpx2.post(
-        client.authorization_url(state=state, nonce=nonce),
-        data={"sub": subject},
-    )
-    assert response.status_code == 302
-    location = response.headers["location"]
-    assert location.startswith(redirect_uri)
-    token_data = client.fetch_token(location, state=state)
+    with freeze_time(faker.date()):
+        response = httpx2.post(
+            client.authorization_url(state=state, nonce=nonce),
+            data={"sub": subject},
+        )
+        assert response.status_code == 302
+        location = response.headers["location"]
+        assert location.startswith(redirect_uri)
+        token_data = client.fetch_token(location, state=state)
 
-    assert token_data.claims["sub"] == subject
-    assert token_data.claims["email"] == subject
-    assert token_data.claims["nonce"] == nonce
+        assert token_data.claims["sub"] == subject
+        assert token_data.claims["email"] == subject
+        assert token_data.claims["nonce"] == nonce
+        assert token_data.claims["auth_time"] == int(datetime.now(UTC).timestamp())
 
-    userinfo = client.fetch_userinfo(token=token_data.access_token)
-    assert userinfo["sub"] == subject
+        userinfo = client.fetch_userinfo(token=token_data.access_token)
+        assert userinfo["sub"] == subject
 
 
 def test_user_endpoint_claims_in_tokens(oidc_server: str):
