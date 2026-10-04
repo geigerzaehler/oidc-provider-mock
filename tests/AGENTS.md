@@ -6,6 +6,7 @@
 - `oidc_server` fixture: starts a real threaded HTTP server, yields its URL as a string
 - `client` fixture: Flask test client (from Flask, not oidc-specific) — no real HTTP, no browser
 - `page` fixture: Playwright browser page with 3s timeouts
+- `ticking_datetime` fixture: mocks datetime with freezegun and `faker.date()` so it can be controlled. Request it last so time unfreezes first on teardown
 - `use_provider_config(...)`: decorator that sets `Config` fields on the test's app — mirrors `Config` dataclass fields exactly (`require_client_registration`, `require_nonce`, `issue_refresh_token`, `access_token_max_age`, `user_claims`)
 - `fake_client(issuer)`: creates an `OidcClient` with random ID/secret/redirect_uri, **not** registered with the server — works because `require_client_registration` defaults to `False`
 - `typeguard` import hook is installed globally for `oidc_provider_mock` — runtime type checking is always active in tests
@@ -30,5 +31,5 @@
 - `fake_client(issuer)` in `conftest.py`: use when the test doesn't need a registered client
 - `OidcClient.register(oidc_server, ...)`: calls `POST /oauth2/clients` and returns a configured client — use when the test needs a specific redirect URI or scope
 - Browser tests use Playwright's `expect(...)` assertions; non-browser tests use `httpx2` for real HTTP or Flask's `client` for in-process requests
-- `freeze_time` (freezegun) is used for token expiry tests
+- Time-dependent tests use the fixtures above, never `freeze_time` (freezegun) inline
 - `faker` generates random values for subjects, URIs, passwords, etc. — tests are not deterministic by design

@@ -2,13 +2,13 @@
 
 import re
 import urllib.parse
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx2
 import pytest
 from faker import Faker
-from freezegun import freeze_time
+from freezegun.api import TickingDateTimeFactory
 
 from oidc_provider_mock._client_lib import AuthorizationError, OidcClient
 from oidc_provider_mock._storage import User
@@ -19,7 +19,7 @@ faker = Faker()
 
 
 @use_provider_config(require_client_registration=True)
-def test_auth_success(oidc_server: str):
+def test_auth_success(oidc_server: str, ticking_datetime: TickingDateTimeFactory):
     """Authorization Code flow success with client registration"""
 
     subject = faker.email()
@@ -29,23 +29,26 @@ def test_auth_success(oidc_server: str):
 
     client = OidcClient.register(oidc_server, redirect_uri=redirect_uri)
 
-    with freeze_time(faker.date()):
-        response = httpx2.post(
-            client.authorization_url(state=state, nonce=nonce),
-            data={"sub": subject},
-        )
-        assert response.status_code == 302
-        location = response.headers["location"]
-        assert location.startswith(redirect_uri)
-        token_data = client.fetch_token(location, state=state)
+    response = httpx2.post(
+        client.authorization_url(state=state, nonce=nonce),
+        data={"sub": subject},
+    )
+    assert response.status_code == 302
+    location = response.headers["location"]
+    assert location.startswith(redirect_uri)
+    token_data = client.fetch_token(location, state=state)
 
-        assert token_data.claims["sub"] == subject
-        assert token_data.claims["email"] == subject
-        assert token_data.claims["nonce"] == nonce
-        assert token_data.claims["auth_time"] == int(datetime.now(UTC).timestamp())
+    assert token_data.claims["sub"] == subject
+    assert token_data.claims["email"] == subject
+    assert token_data.claims["nonce"] == nonce
+    auth_time = token_data.claims["auth_time"]
+    assert isinstance(auth_time, int)
+    assert datetime.fromtimestamp(auth_time, UTC) == pytest.approx(
+        datetime.now(UTC), abs=timedelta(seconds=3)
+    )
 
-        userinfo = client.fetch_userinfo(token=token_data.access_token)
-        assert userinfo["sub"] == subject
+    userinfo = client.fetch_userinfo(token=token_data.access_token)
+    assert userinfo["sub"] == subject
 
 
 def test_user_endpoint_claims_in_tokens(oidc_server: str):

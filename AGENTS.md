@@ -14,6 +14,7 @@ This file provides guidance to coding agents when working with code in this repo
 - Never use `Any` type - prefer specific types or use union types when needed
 - Use modern idiomatic Python code targeting Python 3.10+
 - Follow existing code patterns and conventions in the codebase
+- Narrow types with `assert isinstance(...)`, not `cast(...)`
 
 ## Architecture Overview
 
