@@ -1,4 +1,4 @@
-FROM python:3.15-slim@sha256:f786b2e19cf9bb54e96bfcd4c1b40c4c56336c22e60607ffd4b080ae5b5dee83
+FROM python:3.15-slim@sha256:80cd82871b55326f05d4c3a3b714b371b0e9833891de4be4eb4b99d3092e0029
 
 WORKDIR /app
 COPY requirements.txt dist/*.whl ./
