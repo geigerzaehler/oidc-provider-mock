@@ -90,7 +90,7 @@ jobs:
         with:
           version: 0.13.7
       - run: uv export --frozen --no-dev --no-emit-project -o requirements.txt
-      - uses: docker/setup-docker-action@7ec28a010822b4626af4874f9448a4b05ac6f3e5 # v5.6.0
+      - uses: docker/setup-docker-action@3f1ab1ab0e29231562e4db4ca600c1a49653bac6 # v5.7.0
         with:
           daemon-config: |
             {
@@ -101,7 +101,7 @@ jobs:
             }
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         if: github.ref == 'refs/heads/release/candidate'
         with:
           registry: ghcr.io
